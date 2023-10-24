@@ -90,7 +90,7 @@ exports.login = catchAsync(async (req, res) => {
           status: user.status,
         };
 
-        const token = jwt.sign(payload, JWT_SECRET_KEY);
+        const token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '30m' });
         res.status(201).json({
           status: true,
           message: 'Login success',
