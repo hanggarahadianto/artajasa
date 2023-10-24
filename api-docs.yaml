@@ -1,0 +1,187 @@
+openapi: 3.0.0
+x-stoplight:
+  id: zvpj576gvy7j9
+info:
+  title: Backend API WEB UI Artajasa
+  version: '1.0'
+  description: The API documentation here contains all the api documentation to support the WEB UI ARTAJASA
+servers:
+  - url: 'https://'
+    description: Production Environtment
+  - url: 'https://'
+    description: Staging Environtment
+  - url: 'http://localhost:8070'
+    description: Development Environtment
+paths:
+  /api/users:
+    post:
+      summary: Create Finance Testing Account
+      operationId: post-api-users
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      username:
+                        type: string
+                      role:
+                        type: string
+                      password:
+                        type: string
+                x-examples:
+                  Example 1:
+                    status: true
+                    message: Account berhasil dibuat
+                    data:
+                      id: 1
+                      username: testing1
+                      passowrd: testing1pass
+                      role: client
+                      status: active
+              examples:
+                Example 1:
+                  value:
+                    status: true
+                    message: Account berhasil dibuat
+                    data:
+                      id: 1
+                      username: testing1
+                      role: client
+                      status: active
+        '400':
+          description: Error
+        '403':
+          description: Username already used
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+                status:
+                  type: string
+              x-examples:
+                Example 1:
+                  username: testing1
+                  passoword: Testing1
+                  role: client
+                  status: active
+            examples:
+              Example 1:
+                value:
+                  username: testing1
+                  passowrd: Testing1
+                  role: client
+                  status: active
+        description: In this body you can create new finance account testing
+      description: ''
+      tags:
+        - Users Endpoint
+      parameters:
+        - schema:
+            type: string
+          in: header
+          required: true
+          name: Authorization
+  
+  /api/users/login:
+    post:
+      summary: Login users
+      operationId: post-api-users-login
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      payload: 
+                        id:
+                          type: integer
+                        username:
+                          type: string
+                        role:
+                          type: string
+                x-examples:
+                  Example 1:
+                    status: true
+                    message: Login Success
+                    data:
+                      id: 1
+                      username: Lintangs
+                      password: Litang5
+                      role: client
+                      status: active
+              examples:
+                Example 1:
+                  value:
+                    status: true
+                    message: Login berhasil
+                    token: 
+                    payload:
+                      id: 1
+                      username: Lintangs
+                      role: client
+                      status: active
+        '400':
+          description: Error
+        '403':
+          description: Username already used
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+                status:
+                  type: string
+              x-examples:
+                Example 1:
+                  username: Lintangs
+                  password: Litang5
+            examples:
+              Example 1:
+                value:
+                  username: Lintangs
+                  password: Litang5
+        description: In this body you can login
+      description: ''
+      tags:
+        - Users Endpoint
+     
+components:
+  securitySchemes: {}
