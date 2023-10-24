@@ -14,7 +14,17 @@ module.exports = (req, res, next) => {
     const payload = jwt.verify(token, process.env.JWT_SECRET_KEY);
     req.user = payload;
 
-    next();
+    if (req.method === 'GET' && req.path.startsWith('/api/users/')) {
+      next();
+    } else if (req.method === 'PUT' && req.path.startsWith('/api/users/')) {
+      next();
+    } else {
+      return res.status(403).json({
+        status: false,
+        message: 'Permission denied!',
+        data: null,
+      });
+    }
   } catch (err) {
     if (err.message == 'jwt malformed') {
       return res.status(401).json({
