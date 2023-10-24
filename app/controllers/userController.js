@@ -91,7 +91,6 @@ exports.login = catchAsync(async (req, res) => {
         };
 
         const token = jwt.sign(payload, JWT_SECRET_KEY);
-
         res.status(201).json({
           status: true,
           message: 'Login success',
