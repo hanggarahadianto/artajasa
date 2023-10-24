@@ -2,6 +2,7 @@ const Joi = require('joi');
 const { User } = require('../../database/models');
 const catchAsync = require('../util/catchAsync');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const checkUsernameExist = async (v) => {
   const data = await User.findOne({
@@ -28,10 +29,13 @@ const userSchema = Joi.object({
       'Password harus kombinasi huruf besar, huruf kecil, dan angka',
   }),
   role: Joi.string().valid('admin', 'client').required(),
+  status: Joi.string().valid('active', 'deactive').required(),
 });
 
+const { JWT_SECRET_KEY } = process.env;
+
 exports.addUser = catchAsync(async (req, res) => {
-  const { username, password, role } = req.body;
+  const { username, password, role, status } = req.body;
 
   await userSchema.validateAsync(req.body, { abortEarly: false });
 
@@ -41,6 +45,7 @@ exports.addUser = catchAsync(async (req, res) => {
     username,
     password: hashedPassword,
     role,
+    status,
   });
 
   res.status(200).json({
@@ -48,4 +53,54 @@ exports.addUser = catchAsync(async (req, res) => {
     message: 'User berhasil ditambahkan',
     data: user,
   });
+});
+
+exports.login = catchAsync(async (req, res) => {
+  const { username, password } = req.body;
+
+  const user = await User.findOne({
+    where: {
+      username: username,
+    },
+  });
+
+  if (!user) {
+    res.status(404).json({
+      status: false,
+      message: 'User not found!',
+    });
+  } else {
+    const isPassCorrect = await bcrypt.compare(password, user.password);
+    if (!isPassCorrect) {
+      res.status(400).json({
+        status: false,
+        message: 'Password incorrect',
+      });
+    } else {
+      if (user.status != 'active') {
+        res.status(400).json({
+          status: false,
+          message: 'Your account has suspended!',
+        });
+      } else {
+        payload = {
+          id: user.id,
+          username: user.username,
+          role: user.role,
+          status: user.status,
+        };
+
+        const token = jwt.sign(payload, JWT_SECRET_KEY);
+
+        res.status(201).json({
+          status: true,
+          message: 'Login success',
+          data: {
+            token: token,
+            payload,
+          },
+        });
+      }
+    }
+  }
 });
