@@ -103,3 +103,42 @@ exports.login = catchAsync(async (req, res) => {
     }
   }
 });
+
+// Fungsi pencarian pengguna
+exports.searchUser = catchAsync(async (req, res) => {
+  const { username } = req.params;
+  const user = await User.findByUsername(username);
+
+  if (!user) {
+    res.status(404).json({
+      status: false,
+      message: 'User not found!',
+    });
+  } else {
+    res.status(200).json({
+      status: true,
+      message: 'User found',
+      data: user,
+    });
+  }
+});
+
+// Fungsi modifikasi pengguna
+exports.modifyUser = catchAsync(async (req, res) => {
+  const { username } = req.params;
+  const newData = req.body;
+
+  const result = await User.updateUser(username, newData);
+
+  if (result[0] === 0) {
+    res.status(404).json({
+      status: false,
+      message: 'User not found!',
+    });
+  } else {
+    res.status(200).json({
+      status: true,
+      message: 'User updated successfully',
+    });
+  }
+});
