@@ -17,20 +17,25 @@ module.exports = {
       const decode = jwt.verify(token, JWT_SECRET_KEY);
       req.user = decode;
 
+    if (req.method === 'GET' && req.path.startsWith('/api/users/')) {
       next();
-    } catch (err) {
-      if (err.message == 'jwt malformed') {
-        return res.status(401).json({
-          status: false,
-          message: err.message,
-          data: null,
-        });
-      }
-
-      return res.status(401).json({
+    } else if (req.method === 'PUT' && req.path.startsWith('/api/users/')) {
+      next();
+    } else {
+      return res.status(403).json({
         status: false,
-        message: 'You are not authorize!',
+        message: 'Permission denied!',
+        data: null,
       });
     }
-  },
+  } catch (err) {
+    if (err.message == 'jwt malformed') {
+      return res.status(401).json({
+        status: false,
+        message: err.message,
+        data: null,
+      });
+    }
+    next(err);
+  }
 };
