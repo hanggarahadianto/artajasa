@@ -18,6 +18,9 @@ module.exports = {
       role: {
         type: Sequelize.ENUM(['admin', 'client']),
       },
+      status: {
+        type: Sequelize.ENUM(['active', 'deactive']),
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
