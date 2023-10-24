@@ -172,3 +172,12 @@ exports.modifyUser = catchAsync(async (req, res) => {
     });
   }
 });
+
+exports.whoami = catchAsync(async (req, res) => {
+  const user = req.user;
+  return res.status(200).json({
+    status: true,
+    message: 'succes',
+    data: user,
+  });
+});
