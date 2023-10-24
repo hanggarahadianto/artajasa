@@ -103,3 +103,31 @@ exports.login = catchAsync(async (req, res) => {
     }
   }
 });
+
+exports.terUser = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const user = await User.findOne({
+    where: {
+      id: id,
+    },
+  });
+
+  if (!user) {
+    res.status(404).json({
+      status: false,
+      message: 'User not found',
+    });
+  } else {
+    user.status = 'deactive';
+    await user.save();
+
+    res.status(200).json({
+      status: true,
+      message: 'User status updated successfully',
+      data: user,
+    });
+  }
+});
+
+
