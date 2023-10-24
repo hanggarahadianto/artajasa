@@ -34,8 +34,19 @@ module.exports = {
           message: err.message,
           data: null,
         });
+      } else if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          status: false,
+          message: 'Token has expired. Please log in again.',
+          data: null,
+        });
+      } else {
+        return res.status(400).json({
+          status: false,
+          message: err.message,
+          data: null,
+        });
       }
-      next(err);
     }
   },
 };
