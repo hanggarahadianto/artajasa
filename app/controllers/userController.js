@@ -2,6 +2,7 @@ const Joi = require('joi');
 const { User } = require('../../database/models');
 const catchAsync = require('../util/catchAsync');
 const bcrypt = require('bcrypt');
+const { v4: uuidv4 } = require('uuid');
 
 const checkUsernameExist = async (v) => {
   const data = await User.findOne({
@@ -37,7 +38,10 @@ exports.addUser = catchAsync(async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  const userId = uuidv4();
+
   const user = await User.create({
+    id: userId,
     username,
     password: hashedPassword,
     role,
