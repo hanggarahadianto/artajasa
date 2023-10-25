@@ -2,6 +2,7 @@ const Joi = require('joi');
 const { User } = require('../../database/models');
 const catchAsync = require('../util/catchAsync');
 const bcrypt = require('bcrypt');
+const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 
 const checkUsernameExist = async (v) => {
@@ -41,7 +42,10 @@ exports.addUser = catchAsync(async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  const userId = uuidv4();
+
   const user = await User.create({
+    id: userId,
     username,
     password: hashedPassword,
     role,
@@ -90,7 +94,7 @@ exports.login = catchAsync(async (req, res) => {
           status: user.status,
         };
 
-        const token = jwt.sign(payload, JWT_SECRET_KEY);
+        const token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '30m' });
         res.status(201).json({
           status: true,
           message: 'Login success',
@@ -130,4 +134,50 @@ exports.terUser = catchAsync(async (req, res) => {
   }
 });
 
+// Fungsi pencarian pengguna
+exports.searchUser = catchAsync(async (req, res) => {
+  const { username } = req.params;
+  const user = await User.findByUsername(username);
 
+  if (!user) {
+    res.status(404).json({
+      status: false,
+      message: 'User not found!',
+    });
+  } else {
+    res.status(200).json({
+      status: true,
+      message: 'User found',
+      data: user,
+    });
+  }
+});
+
+// Fungsi modifikasi pengguna
+exports.modifyUser = catchAsync(async (req, res) => {
+  const { username } = req.params;
+  const newData = req.body;
+
+  const result = await User.updateUser(username, newData);
+
+  if (result[0] === 0) {
+    res.status(404).json({
+      status: false,
+      message: 'User not found!',
+    });
+  } else {
+    res.status(200).json({
+      status: true,
+      message: 'User updated successfully',
+    });
+  }
+});
+
+exports.whoami = catchAsync(async (req, res) => {
+  const user = req.user;
+  return res.status(200).json({
+    status: true,
+    message: 'succes',
+    data: user,
+  });
+});

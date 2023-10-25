@@ -17,6 +17,5 @@ app.use(cors({ origin: '*' }));
 
 app.use('/', indexRouter);
 app.use('/api/users', usersRouter);
-app.use('/api/users/:id', usersRouter);
 
 module.exports = app;
