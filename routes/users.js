@@ -18,7 +18,6 @@ router.post('/', mid.auth, isAdmin, addUser);
 router.post('/login', login);
 router.put('/:id', terUser);
 router.get('/whoami', mid.auth, whoami);
-router.patch('/:id', terUser);
 router.get('/:username', searchUser);
 router.put('/:username', mid.auth, modifyUser);
 
