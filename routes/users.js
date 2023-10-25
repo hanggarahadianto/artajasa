@@ -11,6 +11,6 @@ const mid = require('../app/middlewares/restrict');
 
 router.post('/', mid.auth, addUser);
 router.post('/login', login);
-router.patch('/:id', terUser);
+router.put('/:id', terUser);
 
 module.exports = router;
