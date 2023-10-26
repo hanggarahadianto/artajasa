@@ -11,7 +11,7 @@ var router = express.Router();
 
 router.post('/', addUser);
 router.post('/login', login);
-router.get('/:username', searchUser);
-router.put('/:username', modifyUser);
+router.get('/search', searchUser);
+router.put('/:user_id', modifyUser); 
 
 module.exports = router;

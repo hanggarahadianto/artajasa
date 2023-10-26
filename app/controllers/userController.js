@@ -105,30 +105,46 @@ exports.login = catchAsync(async (req, res) => {
 });
 
 // Fungsi pencarian pengguna
-exports.searchUser = catchAsync(async (req, res) => {
-  const { username } = req.params;
-  const user = await User.findByUsername(username);
+const { Op } = require('sequelize');
 
-  if (!user) {
-    res.status(404).json({
-      status: false,
-      message: 'User not found!',
-    });
-  } else {
-    res.status(200).json({
-      status: true,
-      message: 'User found',
-      data: user,
-    });
-  }
+exports.searchUser = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10, username = '' } = req.query;
+  const offset = (page - 1) * limit;
+
+  const users = await User.findAndCountAll({
+    where: {
+      username: {
+        [Op.like]: `%${username}%`, // Pencarian berdasarkan username
+      },
+    },
+    limit: parseInt(limit),
+    offset: offset,
+  });
+
+  res.status(200).json({
+    status: true,
+    message: 'User search results',
+    data: users.rows,
+    total: users.count,
+    page: parseInt(page),
+    limit: parseInt(limit),
+  });
 });
+
 
 // Fungsi modifikasi pengguna
 exports.modifyUser = catchAsync(async (req, res) => {
-  const { username } = req.params;
+  const { user_id } = req.params; 
   const newData = req.body;
 
-  const result = await User.updateUser(username, newData);
+  if (newData.password) {
+    const hashedPassword = await bcrypt.hash(newData.password, 10);
+    newData.password = hashedPassword;
+  }
+
+  const result = await User.update(newData, {
+    where: { id: user_id }, 
+  });
 
   if (result[0] === 0) {
     res.status(404).json({
