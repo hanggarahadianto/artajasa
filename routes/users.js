@@ -15,5 +15,6 @@ router.post('/login', login);
 router.get('/GetAllUser', getAllUsers);
 router.get('/search', searchUser);
 router.put('/:user_id', modifyUser); 
+router.put('/self_modify', modifyUser);
 
 module.exports = router;

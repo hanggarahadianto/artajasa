@@ -168,3 +168,34 @@ exports.modifyUser = catchAsync(async (req, res) => {
     });
   }
 });
+
+// Fungsi modify self
+
+exports.modifyUser = catchAsync(async (req, res) => {
+  const { user } = req;
+
+  if (!user) {
+    return res.status(401).json({
+      status: false,
+      message: 'Pengguna tidak ditemukan',
+    });
+  }
+
+  const { password, status } = req.body;
+
+  // Validasi dan modifikasi data pengguna
+  if (password) {
+    user.password = await bcrypt.hash(password, 10);
+  }
+  if (status) {
+    user.status = status;
+  }
+
+  await user.save();
+
+  res.status(200).json({
+    status: true,
+    message: 'Data pengguna berhasil dimodifikasi',
+    data: user,
+  });
+});

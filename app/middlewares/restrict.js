@@ -16,7 +16,7 @@ module.exports = (req, res, next) => {
 
     if (req.method === 'GET' && req.path.startsWith('/api/users/')) {
       next();
-    } else if (req.method === 'PUT' && req.path.startsWith('/api/users/')) {
+    } else if ((req.method === 'PUT' && req.path.startsWith('/api/users/')) || req.path === '/api/users/self_modify') {
       next();
     } else {
       return res.status(403).json({
