@@ -3,8 +3,6 @@ const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
-    // ...
-
     static findByUsername(username) {
       return this.findOne({
         where: {
@@ -20,8 +18,6 @@ module.exports = (sequelize, DataTypes) => {
         },
       });
     }
-
-    // ...
   }
 
   User.init(
@@ -34,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: 'User',
-    }
+    },
   );
 
   return User;
