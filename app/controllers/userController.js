@@ -205,11 +205,3 @@ exports.whoami = catchAsync(async (req, res) => {
     data: user,
   });
 });
-
-exports.cek = catchAsync(async (req, res) => {
-  const signature = req.headers['signature'];
-
-  res.json({
-    signature,
-  });
-});

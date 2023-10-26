@@ -36,7 +36,7 @@ exports.addInquiry = catchAsync(async (req, res) => {
   try {
     const response = await axios.post(`${SVIP_URL}/inquiry`, data, config);
 
-    res.json({ status: true, message: 'Inquiry Success' });
+    res.json({ status: true, response });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
