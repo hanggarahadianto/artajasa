@@ -1,6 +1,8 @@
 const catchAsync = require('../util/catchAsync');
 const axios = require('axios');
 
+const { SVIP_URL } = process.env;
+
 exports.addInquiry = catchAsync(async (req, res) => {
   const {
     TimeStamp,
@@ -27,17 +29,14 @@ exports.addInquiry = catchAsync(async (req, res) => {
   const config = {
     headers: {
       Date: date,
+      Signature: signature,
     },
   };
 
   try {
-    const response = await axios.post(
-      'http://10.14.136.31:27010/jsonAPI/v1/inquiry',
-      data,
-      config,
-    );
+    const response = await axios.post(`${SVIP_URL}/inquiry`, data, config);
 
-    res.json({ message: 'oke' });
+    res.json({ status: true, message: 'Inquiry Success' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
