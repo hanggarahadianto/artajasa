@@ -2,6 +2,7 @@ var express = require('express');
 const {
   addUser,
   login,
+  getAllUsers,
   searchUser,
   modifyUser,
 } = require('../app/controllers/userController');
@@ -11,6 +12,7 @@ var router = express.Router();
 
 router.post('/', addUser);
 router.post('/login', login);
+router.get('/GetAllUser', getAllUsers);
 router.get('/search', searchUser);
 router.put('/:user_id', modifyUser); 
 

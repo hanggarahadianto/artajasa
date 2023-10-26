@@ -104,6 +104,16 @@ exports.login = catchAsync(async (req, res) => {
   }
 });
 
+// Fungsi untuk mendapatkan semua pengguna
+exports.getAllUsers = catchAsync(async (req, res) => {
+  const users = await User.findAll();
+  res.status(200).json({
+    status: true,
+    message: 'All users',
+    data: users,
+  });
+});
+
 // Fungsi pencarian pengguna
 const { Op } = require('sequelize');
 
