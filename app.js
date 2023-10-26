@@ -6,6 +6,7 @@ var cors = require('cors');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var inquiryRouter = require('./routes/inquiry');
 
 var app = express();
 app.use(logger('dev'));
@@ -17,5 +18,6 @@ app.use(cors({ origin: '*' }));
 
 app.use('/', indexRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/inquiry', inquiryRouter);
 
 module.exports = app;

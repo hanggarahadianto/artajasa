@@ -7,6 +7,7 @@ const {
   searchUser,
   modifyUser,
   whoami,
+  cek,
 } = require('../app/controllers/userController');
 var router = express.Router();
 const mid = require('../app/middlewares/restrict');
