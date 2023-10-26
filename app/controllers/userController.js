@@ -4,6 +4,7 @@ const catchAsync = require('../util/catchAsync');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
+const { Op } = require('sequelize');
 
 const checkUsernameExist = async (v) => {
   const data = await User.findOne({
@@ -95,6 +96,7 @@ exports.login = catchAsync(async (req, res) => {
         };
 
         const token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '30m' });
+
         res.status(201).json({
           status: true,
           message: 'Login success',
@@ -106,6 +108,16 @@ exports.login = catchAsync(async (req, res) => {
       }
     }
   }
+});
+
+// Fungsi untuk mendapatkan semua pengguna
+exports.getAllUsers = catchAsync(async (req, res) => {
+  const users = await User.findAll();
+  res.status(200).json({
+    status: true,
+    message: 'All users',
+    data: users,
+  });
 });
 
 exports.terUser = catchAsync(async (req, res) => {
@@ -134,31 +146,43 @@ exports.terUser = catchAsync(async (req, res) => {
   }
 });
 
-// Fungsi pencarian pengguna
 exports.searchUser = catchAsync(async (req, res) => {
-  const { username } = req.params;
-  const user = await User.findByUsername(username);
+  const { page = 1, limit = 10, username = '' } = req.query;
+  const offset = (page - 1) * limit;
 
-  if (!user) {
-    res.status(404).json({
-      status: false,
-      message: 'User not found!',
-    });
-  } else {
-    res.status(200).json({
-      status: true,
-      message: 'User found',
-      data: user,
-    });
-  }
+  const users = await User.findAndCountAll({
+    where: {
+      username: {
+        [Op.like]: `%${username}%`,
+      },
+    },
+    limit: parseInt(limit),
+    offset: offset,
+  });
+
+  res.status(200).json({
+    status: true,
+    message: 'User search results',
+    data: users.rows,
+    total: users.count,
+    page: parseInt(page),
+    limit: parseInt(limit),
+  });
 });
 
 // Fungsi modifikasi pengguna
 exports.modifyUser = catchAsync(async (req, res) => {
-  const { username } = req.params;
+  const { user_id } = req.params;
   const newData = req.body;
 
-  const result = await User.updateUser(username, newData);
+  if (newData.password) {
+    const hashedPassword = await bcrypt.hash(newData.password, 10);
+    newData.password = hashedPassword;
+  }
+
+  const result = await User.update(newData, {
+    where: { id: user_id },
+  });
 
   if (result[0] === 0) {
     res.status(404).json({

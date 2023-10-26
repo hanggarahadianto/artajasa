@@ -3,8 +3,9 @@ const {
   addUser,
   login,
   terUser,
-  modifyUser,
+  getAllUsers,
   searchUser,
+  modifyUser,
   whoami,
 } = require('../app/controllers/userController');
 var router = express.Router();
@@ -18,7 +19,8 @@ router.post('/', mid.auth, isAdmin, addUser);
 router.post('/login', login);
 router.put('/:id', terUser);
 router.get('/whoami', mid.auth, whoami);
-router.get('/:username', searchUser);
-router.put('/:username', mid.auth, modifyUser);
+router.get('/GetAllUser', getAllUsers);
+router.get('/search', searchUser);
+router.put('/:user_id', modifyUser);
 
 module.exports = router;
