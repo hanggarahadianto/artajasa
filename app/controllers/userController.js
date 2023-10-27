@@ -4,7 +4,7 @@ const catchAsync = require('../util/catchAsync');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 
 const checkUsernameExist = async (v) => {
   const data = await User.findOne({
@@ -239,59 +239,49 @@ exports.searchUser = catchAsync(async (req, res) => {
 // Fungsi modifikasi pengguna
 exports.modifyUser = async (req, res) => {
   const { username, password } = req.body;
-  const { user_id } = req.params;
 
-  try {
+  const user = await User.findOne({
+    where: {
+      id: req.params.user_id,
+    },
+  });
+
+  if (!user) {
+    return res.status(404).json({
+      status: false,
+      message: 'User not found!',
+    });
+  } else {
     if (!username && !password) {
       return res.status(400).json({
         status: false,
         message:
           'You must provide either a new username or password to update.',
       });
-    }
+    } else {
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Check if the user exists
-    const user = await User.findOne({
-      where: {
-        id: user_id,
-      },
-    });
+      await User.update(
+        {
+          username,
+          password: hashedPassword,
+        },
+        {
+          where: {
+            id: req.params.user_id,
+          },
+        },
+      );
 
-    if (!user) {
-      return res.status(404).json({
-        status: false,
-        message: 'User not found!',
+      res.status(200).json({
+        status: true,
+        message: 'User updated successfully',
       });
     }
-
-    if (username) {
-      // Update the username
-      user.username = username;
-    }
-
-    if (password) {
-      // Update the password
-      const hashedPassword = await bcrypt.hash(password, 10);
-      user.password = hashedPassword;
-    }
-
-    // Save the updated user data
-    await user.save();
-
-    res.status(200).json({
-      status: true,
-      message: 'User updated successfully',
-    });
-  } catch (error) {
-    return res.status(400).json({
-      status: false,
-      message: error.message,
-    });
   }
 };
 
 // Fungsi modify self
-
 exports.selfModify = catchAsync(async (req, res) => {
   const user = req.user.id;
 
