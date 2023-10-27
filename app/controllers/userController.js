@@ -126,11 +126,9 @@ exports.getAllUsers = catchAsync(async (req, res) => {
 });
 
 exports.terUser = catchAsync(async (req, res) => {
-  const id = req.query.id;
-
   const user = await User.findOne({
     where: {
-      id: id,
+      id: req.params.id,
     },
   });
 
@@ -216,23 +214,20 @@ exports.modifyUser = catchAsync(async (req, res) => {
 exports.selfModify = catchAsync(async (req, res) => {
   const user = req.user.id;
 
-  // if (!user) {
-  //   return res.status(401).json({
-  //     status: false,
-  //     message: 'Pengguna tidak ditemukan',
-  //   });
-  // }
+  if (!user) {
+    return res.status(401).json({
+      status: false,
+      message: 'Pengguna tidak ditemukan',
+    });
+  }
 
-  // const { password, status } = req.body;
+  const { password } = req.body;
 
-  // if (password) {
-  //   user.password = await bcrypt.hash(password, 10);
-  // }
-  // if (status) {
-  //   user.status = status;
-  // }
+  if (password) {
+    user.password = await bcrypt.hash(password, 10);
+  }
 
-  // await user.save();
+  await user.save();
 
   res.status(200).json({
     status: true,
