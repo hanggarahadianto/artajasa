@@ -245,7 +245,8 @@ exports.modifyUser = async (req, res) => {
     if (!username && !password) {
       return res.status(400).json({
         status: false,
-        message: 'You must provide either a new username or password to update.',
+        message:
+          'You must provide either a new username or password to update.',
       });
     }
 
@@ -303,16 +304,23 @@ exports.selfModify = catchAsync(async (req, res) => {
 
   const { password } = req.body;
 
-  if (password) {
-    user.password = await bcrypt.hash(password, 10);
-  }
+  const hashedPassword = await bcrypt.hash(password, 10);
 
-  await user.save();
+  const updatedData = await User.update(
+    {
+      password: hashedPassword,
+    },
+    {
+      where: {
+        id: req.user.id,
+      },
+    },
+  );
 
   res.status(200).json({
     status: true,
     message: 'Data pengguna berhasil dimodifikasi',
-    data: user,
+    data: updatedData,
   });
 });
 
