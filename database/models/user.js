@@ -3,8 +3,6 @@ const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
-    // ...
-
     static findByUsername(username) {
       return this.findOne({
         where: {
@@ -20,21 +18,19 @@ module.exports = (sequelize, DataTypes) => {
         },
       });
     }
-
-    // ...
   }
 
   User.init(
     {
       username: DataTypes.STRING,
-      password: DataTypes.STRING, 
+      password: DataTypes.STRING,
       role: DataTypes.ENUM(['admin', 'client']),
       status: DataTypes.ENUM(['active', 'deactive']),
     },
     {
       sequelize,
       modelName: 'User',
-    }
+    },
   );
 
   return User;
