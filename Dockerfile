@@ -2,6 +2,9 @@ FROM node:20.8.1-alpine3.18 AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json ./
+RUN npm config set proxy $HTTP_PROXY
+RUN npm config set https-proxy $HTTPS_PROXY
+RUN npm set strict-ssl false
 RUN npm ci --production
 
 FROM node:20.8.1-alpine3.18 AS builder
