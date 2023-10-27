@@ -18,7 +18,7 @@ router.post('/', mid.auth, isAdmin, addUser);
 
 //all user
 router.post('/login', login);
-router.put('/terminate/:id', terUser);
+router.put('/terminate/:id', mid.auth, isAdmin, terUser);
 router.get('/whoami', mid.auth, whoami);
 router.get('/GetAllUser', getAllUsers);
 router.get('/search', searchUser);

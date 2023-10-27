@@ -1,17 +1,15 @@
 openapi: 3.0.0
-x-stoplight:
-  id: zvpj576gvy7j9
 info:
   title: Backend API WEB UI Artajasa
   version: '1.0'
-  description: The API documentation here contains all the api documentation to support the WEB UI ARTAJASA
+  description: The API documentation here contains all the API documentation to support the WEB UI ARTAJASA
 servers:
-  - url: 'https://'
-    description: Production Environtment
-  - url: 'https://'
-    description: Staging Environtment
+  - url: 'https://your-production-url.com' # Gantilah dengan URL produksi yang sesuai
+    description: Production Environment
+  - url: 'https://your-staging-url.com' # Gantilah dengan URL staging yang sesuai
+    description: Staging Environment
   - url: 'http://localhost:8070'
-    description: Development Environtment
+    description: Development Environment
 paths:
   /api/users:
     post:
@@ -40,26 +38,17 @@ paths:
                         type: string
                       password:
                         type: string
-                x-examples:
+                examples:
                   Example 1:
-                    status: true
-                    message: Account berhasil dibuat
-                    data:
-                      id: 1
-                      username: testing1
-                      passowrd: testing1pass
-                      role: client
-                      status: active
-              examples:
-                Example 1:
-                  value:
-                    status: true
-                    message: Account berhasil dibuat
-                    data:
-                      id: 1
-                      username: testing1
-                      role: client
-                      status: active
+                    value:
+                      status: true
+                      message: Account berhasil dibuat
+                      data:
+                        id: 1
+                        username: testing1
+                        password: testing1pass
+                        role: client
+                        status: active
         '400':
           description: Error
         '403':
@@ -78,20 +67,14 @@ paths:
                   type: string
                 status:
                   type: string
-              x-examples:
+              examples:
                 Example 1:
-                  username: testing1
-                  passoword: Testing1
-                  role: client
-                  status: active
-            examples:
-              Example 1:
-                value:
-                  username: testing1
-                  passowrd: Testing1
-                  role: client
-                  status: active
-        description: In this body you can create new finance account testing
+                  value:
+                    username: testing1
+                    password: Testing1
+                    role: client
+                    status: active
+        description: In this body you can create a new finance account for testing
       description: ''
       tags:
         - Users Endpoint
@@ -115,7 +98,7 @@ paths:
                 type: object
                 properties:
                   status:
-                    type: boolean
+                    type: string
                   message:
                     type: string
                   data:
@@ -123,34 +106,28 @@ paths:
                     properties:
                       token:
                         type: string
-                      payload: 
-                        id:
-                          type: integer
-                        username:
-                          type: string
-                        role:
-                          type: string
-                x-examples:
+                      payload:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          username:
+                            type: string
+                          role:
+                            type: string
+              
+                examples:
                   Example 1:
-                    status: true
-                    message: Login Success
-                    data:
-                      id: 1
-                      username: Lintangs
-                      password: Litang5
-                      role: client
-                      status: active
-              examples:
-                Example 1:
-                  value:
-                    status: true
-                    message: Login berhasil
-                    token: 
-                    payload:
-                      id: 1
-                      username: Lintangs
-                      role: client
-                      status: active
+                    value:
+                      status: true
+                      message: Login Success
+                      data:
+                        token: your-token
+                        payload:
+                          id: 1
+                          username: Admin5
+                          role: client
+                          status: active
         '400':
           description: Error
         '403':
@@ -165,19 +142,11 @@ paths:
                   type: string
                 password:
                   type: string
-                role:
-                  type: string
-                status:
-                  type: string
-              x-examples:
+              examples:
                 Example 1:
-                  username: Lintangs
-                  password: Litang5
-            examples:
-              Example 1:
-                value:
-                  username: Lintangs
-                  password: Litang5
+                  value:
+                    username: Lintangs
+                    password: Litang5
         description: In this body you can login
       description: ''
       tags:
