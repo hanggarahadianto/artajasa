@@ -174,40 +174,120 @@ exports.searchUser = catchAsync(async (req, res) => {
 });
 
 // Fungsi modifikasi pengguna
-exports.modifyUser = catchAsync(async (req, res) => {
-  const newData = req.body;
-
-  const user = await User.findOne({
+exports.getAllUsers = catchAsync(async (req, res) => {
+  const users = await User.findAll({
     where: {
-      id: req.query.id,
+      role: 'client', // Ubah ke 'client' untuk hanya menampilkan pengguna dengan peran 'client'
     },
   });
 
-  if (newData.password) {
-    const hashedPassword = await bcrypt.hash(newData.password, 10);
-    newData.password = hashedPassword;
-  }
+  res.status(200).json({
+    status: true,
+    message: 'All client users',
+    data: users,
+  });
+});
 
-  // const result = await User.update(newData, {
-  //   where: { id: id },
-  // });
-
-  res.json({
-    user: user,
+exports.terUser = catchAsync(async (req, res) => {
+  const user = await User.findOne({
+    where: {
+      id: req.params.id,
+    },
   });
 
-  // if (result[0] === 0) {
-  //   res.status(404).json({
-  //     status: false,
-  //     message: 'User not found!',
-  //   });
-  // } else {
-  //   res.status(200).json({
-  //     status: true,
-  //     message: 'User updated successfully',
-  //   });
-  // }
+  if (!user) {
+    res.status(404).json({
+      status: false,
+      message: 'User not found! nih',
+    });
+  } else {
+    user.status = 'deactive';
+    await user.save();
+
+    res.status(200).json({
+      status: true,
+      message: 'User status updated successfully',
+      data: user,
+    });
+  }
 });
+
+exports.searchUser = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10, username = '' } = req.query;
+  const offset = (page - 1) * limit;
+
+  const users = await User.findAndCountAll({
+    where: {
+      username: {
+        [Op.like]: `%${username}%`,
+      },
+    },
+    limit: parseInt(limit),
+    offset: offset,
+  });
+
+  res.status(200).json({
+    status: true,
+    message: 'User search results',
+    data: users.rows,
+    total: users.count,
+    page: parseInt(page),
+    limit: parseInt(limit),
+  });
+});
+
+// Fungsi modifikasi pengguna
+exports.modifyUser = async (req, res) => {
+  const { username, password } = req.body;
+  const { user_id } = req.params;
+
+  try {
+    if (!username && !password) {
+      return res.status(400).json({
+        status: false,
+        message: 'You must provide either a new username or password to update.',
+      });
+    }
+
+    // Check if the user exists
+    const user = await User.findOne({
+      where: {
+        id: user_id,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        status: false,
+        message: 'User not found!',
+      });
+    }
+
+    if (username) {
+      // Update the username
+      user.username = username;
+    }
+
+    if (password) {
+      // Update the password
+      const hashedPassword = await bcrypt.hash(password, 10);
+      user.password = hashedPassword;
+    }
+
+    // Save the updated user data
+    await user.save();
+
+    res.status(200).json({
+      status: true,
+      message: 'User updated successfully',
+    });
+  } catch (error) {
+    return res.status(400).json({
+      status: false,
+      message: error.message,
+    });
+  }
+};
 
 // Fungsi modify self
 
