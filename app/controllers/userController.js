@@ -2,7 +2,9 @@ const Joi = require('joi');
 const { User } = require('../../database/models');
 const catchAsync = require('../util/catchAsync');
 const bcrypt = require('bcrypt');
+const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
+const { Op } = require('sequelize');
 
 const checkUsernameExist = async (v) => {
   const data = await User.findOne({
@@ -41,7 +43,10 @@ exports.addUser = catchAsync(async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  const userId = uuidv4();
+
   const user = await User.create({
+    id: userId,
     username,
     password: hashedPassword,
     role,
@@ -91,6 +96,7 @@ exports.login = catchAsync(async (req, res) => {
         };
 
         const token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '30m' });
+
         res.status(201).json({
           status: true,
           message: 'Login success',
@@ -106,16 +112,44 @@ exports.login = catchAsync(async (req, res) => {
 
 // Fungsi untuk mendapatkan semua pengguna
 exports.getAllUsers = catchAsync(async (req, res) => {
-  const users = await User.findAll();
+  const users = await User.findAll({
+    where: {
+      role: 'client', // Ubah ke 'client' untuk hanya menampilkan pengguna dengan peran 'client'
+    },
+  });
+
   res.status(200).json({
     status: true,
-    message: 'All users',
+    message: 'All client users',
     data: users,
   });
 });
 
-// Fungsi pencarian pengguna
-const { Op } = require('sequelize');
+exports.terUser = catchAsync(async (req, res) => {
+  const id = req.query.id;
+
+  const user = await User.findOne({
+    where: {
+      id: id,
+    },
+  });
+
+  if (!user) {
+    res.status(404).json({
+      status: false,
+      message: 'User not found! nih',
+    });
+  } else {
+    user.status = 'deactive';
+    await user.save();
+
+    res.status(200).json({
+      status: true,
+      message: 'User status updated successfully',
+      data: user,
+    });
+  }
+});
 
 exports.searchUser = catchAsync(async (req, res) => {
   const { page = 1, limit = 10, username = '' } = req.query;
@@ -124,7 +158,7 @@ exports.searchUser = catchAsync(async (req, res) => {
   const users = await User.findAndCountAll({
     where: {
       username: {
-        [Op.like]: `%${username}%`, // Pencarian berdasarkan username
+        [Op.like]: `%${username}%`,
       },
     },
     limit: parseInt(limit),
@@ -143,35 +177,44 @@ exports.searchUser = catchAsync(async (req, res) => {
 
 // Fungsi modifikasi pengguna
 exports.modifyUser = catchAsync(async (req, res) => {
-  const { user_id } = req.params;
   const newData = req.body;
+
+  const user = await User.findOne({
+    where: {
+      id: req.query.id,
+    },
+  });
 
   if (newData.password) {
     const hashedPassword = await bcrypt.hash(newData.password, 10);
     newData.password = hashedPassword;
   }
 
-  const result = await User.update(newData, {
-    where: { id: user_id },
+  // const result = await User.update(newData, {
+  //   where: { id: id },
+  // });
+
+  res.json({
+    user: user,
   });
 
-  if (result[0] === 0) {
-    res.status(404).json({
-      status: false,
-      message: 'User not found!',
-    });
-  } else {
-    res.status(200).json({
-      status: true,
-      message: 'User updated successfully',
-    });
-  }
+  // if (result[0] === 0) {
+  //   res.status(404).json({
+  //     status: false,
+  //     message: 'User not found!',
+  //   });
+  // } else {
+  //   res.status(200).json({
+  //     status: true,
+  //     message: 'User updated successfully',
+  //   });
+  // }
 });
 
 // Fungsi modify self
 
 exports.selfModify = catchAsync(async (req, res) => {
-  const user = req.user;
+  const user = req.user.id;
 
   // if (!user) {
   //   return res.status(401).json({
@@ -194,6 +237,15 @@ exports.selfModify = catchAsync(async (req, res) => {
   res.status(200).json({
     status: true,
     message: 'Data pengguna berhasil dimodifikasi',
+    data: user,
+  });
+});
+
+exports.whoami = catchAsync(async (req, res) => {
+  const user = req.user;
+  return res.status(200).json({
+    status: true,
+    message: 'succes',
     data: user,
   });
 });
