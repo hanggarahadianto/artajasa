@@ -7,7 +7,7 @@ const {
   searchUser,
   modifyUser,
   whoami,
-  cek,
+  selfModify,
 } = require('../app/controllers/userController');
 var router = express.Router();
 const mid = require('../app/middlewares/restrict');
@@ -18,11 +18,11 @@ router.post('/', mid.auth, isAdmin, addUser);
 
 //all user
 router.post('/login', login);
-router.put('/:id', terUser);
+router.put('/terminate/:id', terUser);
 router.get('/whoami', mid.auth, whoami);
 router.get('/GetAllUser', getAllUsers);
 router.get('/search', searchUser);
-router.put('/:user_id', modifyUser);
-router.post('/cek', mid.auth, cek);
+router.put('/', modifyUser);
+router.put('/self_modify', mid.auth, selfModify);
 
 module.exports = router;

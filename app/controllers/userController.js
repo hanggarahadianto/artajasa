@@ -117,7 +117,7 @@ exports.getAllUsers = catchAsync(async (req, res) => {
       role: 'client', // Ubah ke 'client' untuk hanya menampilkan pengguna dengan peran 'client'
     },
   });
-  
+
   res.status(200).json({
     status: true,
     message: 'All client users',
@@ -125,20 +125,17 @@ exports.getAllUsers = catchAsync(async (req, res) => {
   });
 });
 
-
 exports.terUser = catchAsync(async (req, res) => {
-  const { id } = req.params;
-
   const user = await User.findOne({
     where: {
-      id: id,
+      id: req.params.id,
     },
   });
 
   if (!user) {
     res.status(404).json({
       status: false,
-      message: 'User not found',
+      message: 'User not found! nih',
     });
   } else {
     user.status = 'deactive';
@@ -178,29 +175,65 @@ exports.searchUser = catchAsync(async (req, res) => {
 
 // Fungsi modifikasi pengguna
 exports.modifyUser = catchAsync(async (req, res) => {
-  const { user_id } = req.params;
   const newData = req.body;
+
+  const user = await User.findOne({
+    where: {
+      id: req.query.id,
+    },
+  });
 
   if (newData.password) {
     const hashedPassword = await bcrypt.hash(newData.password, 10);
     newData.password = hashedPassword;
   }
 
-  const result = await User.update(newData, {
-    where: { id: user_id },
+  // const result = await User.update(newData, {
+  //   where: { id: id },
+  // });
+
+  res.json({
+    user: user,
   });
 
-  if (result[0] === 0) {
-    res.status(404).json({
+  // if (result[0] === 0) {
+  //   res.status(404).json({
+  //     status: false,
+  //     message: 'User not found!',
+  //   });
+  // } else {
+  //   res.status(200).json({
+  //     status: true,
+  //     message: 'User updated successfully',
+  //   });
+  // }
+});
+
+// Fungsi modify self
+
+exports.selfModify = catchAsync(async (req, res) => {
+  const user = req.user.id;
+
+  if (!user) {
+    return res.status(401).json({
       status: false,
-      message: 'User not found!',
-    });
-  } else {
-    res.status(200).json({
-      status: true,
-      message: 'User updated successfully',
+      message: 'Pengguna tidak ditemukan',
     });
   }
+
+  const { password } = req.body;
+
+  if (password) {
+    user.password = await bcrypt.hash(password, 10);
+  }
+
+  await user.save();
+
+  res.status(200).json({
+    status: true,
+    message: 'Data pengguna berhasil dimodifikasi',
+    data: user,
+  });
 });
 
 exports.cek = catchAsync(async (req, res) => {
