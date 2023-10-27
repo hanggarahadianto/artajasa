@@ -23,5 +23,6 @@ router.get('/whoami', mid.auth, whoami);
 router.get('/GetAllUser', getAllUsers);
 router.get('/search', searchUser);
 router.put('/:user_id', modifyUser);
+router.post('/cek', mid.auth, cek);
 
 module.exports = router;

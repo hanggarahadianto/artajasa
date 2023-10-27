@@ -197,6 +197,14 @@ exports.modifyUser = catchAsync(async (req, res) => {
   }
 });
 
+exports.cek = catchAsync(async (req, res) => {
+  const id = req.user.id;
+
+  res.json({
+    id: id,
+  });
+});
+
 exports.whoami = catchAsync(async (req, res) => {
   const user = req.user;
   return res.status(200).json({

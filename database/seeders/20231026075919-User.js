@@ -11,7 +11,7 @@ module.exports = {
         id: 'b65f08d0-f95b-49ad-a2b9-822e764b3ec6',
         username: 'Admin5',
         password: hashedPassword,
-        role: 'client',
+        role: 'admin',
         status: 'active',
         createdAt: new Date(),
         updatedAt: new Date(),
