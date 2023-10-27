@@ -1,39 +1,52 @@
 const jwt = require('jsonwebtoken');
 
+const { JWT_SECRET_KEY } = process.env;
 
-module.exports = (req, res, next) => {
-  try {
-    const token = req.headers['authorization'];
-    if (!token) {
-      return res.status(401).json({
-        status: false,
-        message: "you're not authorized!",
-        data: null,
-      });
-    }
+module.exports = {
+  auth: (req, res, next) => {
+    try {
+      const authorizationHeader = req.headers['authorization'];
+      if (!authorizationHeader || !authorizationHeader.startsWith('Bearer ')) {
+        return res.status(401).json({
+          status: false,
+          message: 'You are not authorized!',
+          data: null,
+        });
+      } else {
+        const token = authorizationHeader.split(' ')[1];
+        if (!token) {
+          return res.status(401).json({
+            status: false,
+            message: 'You are not authorize!',
+            data: null,
+          });
+        }
 
-    const payload = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    req.user = payload;
+        const decode = jwt.verify(token, JWT_SECRET_KEY);
+        req.user = decode;
 
-    if (req.method === 'GET' && req.path.startsWith('/api/users/')) {
-      next();
-    } else if ((req.method === 'PUT' && req.path.startsWith('/api/users/')) || req.path === '/api/users/self_modify') {
-      next();
-    } else {
-      return res.status(403).json({
-        status: false,
-        message: 'Permission denied!',
-        data: null,
-      });
+        next();
+      }
+    } catch (err) {
+      if (err.message == 'jwt malformed') {
+        return res.status(401).json({
+          status: false,
+          message: err.message,
+          data: null,
+        });
+      } else if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          status: false,
+          message: 'Token has expired. Please log in again.',
+          data: null,
+        });
+      } else {
+        return res.status(400).json({
+          status: false,
+          message: err.message,
+          data: null,
+        });
+      }
     }
-  } catch (err) {
-    if (err.message == 'jwt malformed') {
-      return res.status(401).json({
-        status: false,
-        message: err.message,
-        data: null,
-      });
-    }
-    next(err);
-  }
+  },
 };

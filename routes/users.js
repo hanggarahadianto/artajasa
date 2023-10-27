@@ -8,6 +8,7 @@ const {
   selfModify,
 } = require('../app/controllers/userController');
 var router = express.Router();
+const mid = require('../app/middlewares/restrict');
 
 /* GET users listing. */
 
@@ -15,7 +16,7 @@ router.post('/', addUser);
 router.post('/login', login);
 router.get('/GetAllUser', getAllUsers);
 router.get('/search', searchUser);
-router.put('/:user_id', modifyUser); 
+router.put('/:user_id', modifyUser);
 router.put('/self_modify', mid.auth, selfModify);
 
 module.exports = router;

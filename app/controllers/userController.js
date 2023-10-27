@@ -141,10 +141,9 @@ exports.searchUser = catchAsync(async (req, res) => {
   });
 });
 
-
 // Fungsi modifikasi pengguna
 exports.modifyUser = catchAsync(async (req, res) => {
-  const { user_id } = req.params; 
+  const { user_id } = req.params;
   const newData = req.body;
 
   if (newData.password) {
@@ -153,7 +152,7 @@ exports.modifyUser = catchAsync(async (req, res) => {
   }
 
   const result = await User.update(newData, {
-    where: { id: user_id }, 
+    where: { id: user_id },
   });
 
   if (result[0] === 0) {
@@ -171,25 +170,26 @@ exports.modifyUser = catchAsync(async (req, res) => {
 
 // Fungsi modify self
 
-exports.selfModify = catchAsync(async (req, res) => {  const user = req.user; // Dapatkan pengguna dari token JWT
+exports.selfModify = catchAsync(async (req, res) => {
+  const user = req.user;
 
-  if (!user) {
-    return res.status(401).json({
-      status: false,
-      message: 'Pengguna tidak ditemukan',
-    });
-  }
+  // if (!user) {
+  //   return res.status(401).json({
+  //     status: false,
+  //     message: 'Pengguna tidak ditemukan',
+  //   });
+  // }
 
-  const { password, status } = req.body;
+  // const { password, status } = req.body;
 
-  if (password) {
-    user.password = await bcrypt.hash(password, 10);
-  }
-  if (status) {
-    user.status = status;
-  }
+  // if (password) {
+  //   user.password = await bcrypt.hash(password, 10);
+  // }
+  // if (status) {
+  //   user.status = status;
+  // }
 
-  await user.save();
+  // await user.save();
 
   res.status(200).json({
     status: true,
