@@ -5,6 +5,7 @@ const {
   getAllUsers,
   searchUser,
   modifyUser,
+  selfModify,
 } = require('../app/controllers/userController');
 var router = express.Router();
 
@@ -15,6 +16,6 @@ router.post('/login', login);
 router.get('/GetAllUser', getAllUsers);
 router.get('/search', searchUser);
 router.put('/:user_id', modifyUser); 
-router.put('/self_modify', modifyUser);
+router.put('/self_modify', mid.auth, selfModify);
 
 module.exports = router;

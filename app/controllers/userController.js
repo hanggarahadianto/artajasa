@@ -171,8 +171,7 @@ exports.modifyUser = catchAsync(async (req, res) => {
 
 // Fungsi modify self
 
-exports.modifyUser = catchAsync(async (req, res) => {
-  const { user } = req;
+exports.selfModify = catchAsync(async (req, res) => {  const user = req.user; // Dapatkan pengguna dari token JWT
 
   if (!user) {
     return res.status(401).json({
@@ -183,7 +182,6 @@ exports.modifyUser = catchAsync(async (req, res) => {
 
   const { password, status } = req.body;
 
-  // Validasi dan modifikasi data pengguna
   if (password) {
     user.password = await bcrypt.hash(password, 10);
   }
