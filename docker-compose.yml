@@ -1,8 +1,15 @@
 version: "3.7"
 services:
   app:
+    image: artajasa-be
     build: .
     container_name: artajasa-be
     restart: always
     ports:
       - "3001:3000"
+    networks:
+      - artajasa-testtool
+networks:
+  artajasa-testtool:
+    name: artajasa-testtool
+    driver: bridge

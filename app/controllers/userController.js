@@ -112,13 +112,19 @@ exports.login = catchAsync(async (req, res) => {
 
 // Fungsi untuk mendapatkan semua pengguna
 exports.getAllUsers = catchAsync(async (req, res) => {
-  const users = await User.findAll();
+  const users = await User.findAll({
+    where: {
+      role: 'client', // Ubah ke 'client' untuk hanya menampilkan pengguna dengan peran 'client'
+    },
+  });
+  
   res.status(200).json({
     status: true,
-    message: 'All users',
+    message: 'All client users',
     data: users,
   });
 });
+
 
 exports.terUser = catchAsync(async (req, res) => {
   const { id } = req.params;
