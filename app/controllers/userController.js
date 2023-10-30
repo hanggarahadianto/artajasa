@@ -4,7 +4,7 @@ const catchAsync = require('../util/catchAsync');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 
 const checkUsernameExist = async (v) => {
   const data = await User.findOne({
@@ -174,43 +174,114 @@ exports.searchUser = catchAsync(async (req, res) => {
 });
 
 // Fungsi modifikasi pengguna
-exports.modifyUser = catchAsync(async (req, res) => {
-  const newData = req.body;
-
-  const user = await User.findOne({
+exports.getAllUsers = catchAsync(async (req, res) => {
+  const users = await User.findAll({
     where: {
-      id: req.query.id,
+      role: 'client', // Ubah ke 'client' untuk hanya menampilkan pengguna dengan peran 'client'
     },
   });
 
-  if (newData.password) {
-    const hashedPassword = await bcrypt.hash(newData.password, 10);
-    newData.password = hashedPassword;
-  }
-
-  // const result = await User.update(newData, {
-  //   where: { id: id },
-  // });
-
-  res.json({
-    user: user,
+  res.status(200).json({
+    status: true,
+    message: 'All client users',
+    data: users,
   });
-
-  // if (result[0] === 0) {
-  //   res.status(404).json({
-  //     status: false,
-  //     message: 'User not found!',
-  //   });
-  // } else {
-  //   res.status(200).json({
-  //     status: true,
-  //     message: 'User updated successfully',
-  //   });
-  // }
 });
 
-// Fungsi modify self
+exports.terUser = catchAsync(async (req, res) => {
+  const user = await User.findOne({
+    where: {
+      id: req.params.id,
+    },
+  });
 
+  if (!user) {
+    res.status(404).json({
+      status: false,
+      message: 'User not found! nih',
+    });
+  } else {
+    user.status = 'deactive';
+    await user.save();
+
+    res.status(200).json({
+      status: true,
+      message: 'User status updated successfully',
+      data: user,
+    });
+  }
+});
+
+exports.searchUser = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10, username = '' } = req.query;
+  const offset = (page - 1) * limit;
+
+  const users = await User.findAndCountAll({
+    where: {
+      username: {
+        [Op.like]: `%${username}%`,
+      },
+    },
+    limit: parseInt(limit),
+    offset: offset,
+  });
+
+  res.status(200).json({
+    status: true,
+    message: 'User search results',
+    data: users.rows,
+    total: users.count,
+    page: parseInt(page),
+    limit: parseInt(limit),
+  });
+});
+
+// Fungsi modifikasi pengguna
+exports.modifyUser = async (req, res) => {
+  const { username, password } = req.body;
+
+  const user = await User.findOne({
+    where: {
+      id: req.params.user_id,
+    },
+  });
+
+  if (!user) {
+    return res.status(404).json({
+      status: false,
+      message: 'User not found!',
+    });
+  } else {
+    if (!username && !password) {
+      return res.status(400).json({
+        status: false,
+        message:
+          'You must provide either a new username or password to update.',
+      });
+    } else {
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      await User.update(
+        {
+          username,
+          password: hashedPassword,
+        },
+        {
+          where: {
+            id: req.params.user_id,
+          },
+        },
+      );
+
+      res.status(200).json({
+        status: true,
+        message: 'User updated successfully',
+      });
+    }
+  }
+};
+
+// Fungsi modify self
 exports.selfModify = catchAsync(async (req, res) => {
   const user = req.user.id;
 
@@ -223,16 +294,23 @@ exports.selfModify = catchAsync(async (req, res) => {
 
   const { password } = req.body;
 
-  if (password) {
-    user.password = await bcrypt.hash(password, 10);
-  }
+  const hashedPassword = await bcrypt.hash(password, 10);
 
-  await user.save();
+  const updatedData = await User.update(
+    {
+      password: hashedPassword,
+    },
+    {
+      where: {
+        id: req.user.id,
+      },
+    },
+  );
 
   res.status(200).json({
     status: true,
     message: 'Data pengguna berhasil dimodifikasi',
-    data: user,
+    data: updatedData,
   });
 });
 

@@ -15,14 +15,14 @@ const { isAdmin } = require('../app/middlewares/rbac');
 
 //admin only
 router.post('/', mid.auth, isAdmin, addUser);
+router.put('/terminate/:id', mid.auth, isAdmin, terUser);
+router.get('/GetAllUser', mid.auth, isAdmin, getAllUsers);
+router.get('/search', mid.auth, isAdmin, searchUser);
+router.put('/modify/:user_id', mid.auth, isAdmin, modifyUser);
 
 //all user
 router.post('/login', login);
-router.put('/terminate/:id', mid.auth, isAdmin, terUser);
 router.get('/whoami', mid.auth, whoami);
-router.get('/GetAllUser', getAllUsers);
-router.get('/search', searchUser);
-router.put('/', modifyUser);
-router.put('/self_modify', mid.auth, selfModify);
+router.put('/self-modify', mid.auth, selfModify);
 
 module.exports = router;
