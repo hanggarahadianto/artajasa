@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "nodemon ./bin/www",
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "swagger": "node ./swagger.js"
   },
   "engines": {
     "node": ">=20.8.1"
@@ -23,6 +24,8 @@
     "nodemon": "^3.0.1",
     "pg": "^8.11.3",
     "sequelize": "^6.33.0",
+    "swagger-autogen": "^2.23.7",
+    "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
     "update": "^0.4.2",
     "uuid": "^9.0.1",

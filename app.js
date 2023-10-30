@@ -5,7 +5,8 @@ var logger = require('morgan');
 var cors = require('cors');
 var swaggerUi = require('swagger-ui-express');
 var YAML = require('yamljs');
-var swaggerDocument = YAML.load('./api-docs.yaml');
+
+var swaggerDocument = require('./swagger-output.json'); // Ubah pemanggilan file
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors({ origin: '*' }));
+
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use('/', indexRouter);
