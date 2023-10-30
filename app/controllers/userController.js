@@ -177,7 +177,7 @@ exports.searchUser = catchAsync(async (req, res) => {
 exports.getAllUsers = catchAsync(async (req, res) => {
   const users = await User.findAll({
     where: {
-      role: 'client', // Ubah ke 'client' untuk hanya menampilkan pengguna dengan peran 'client'
+      role: 'client',
     },
   });
 
@@ -283,14 +283,7 @@ exports.modifyUser = async (req, res) => {
 
 // Fungsi modify self
 exports.selfModify = catchAsync(async (req, res) => {
-  const userId = req.user.id;
-  const { passwordOld, password: newPassword } = req.body;
-
-  const user = await User.findOne({
-    where: {
-      id: userId,
-    },
-  });
+  const user = req.user.id;
 
   if (!user) {
     return res.status(401).json({
@@ -299,23 +292,9 @@ exports.selfModify = catchAsync(async (req, res) => {
     });
   }
 
-  const isOldPasswordCorrect = await bcrypt.compare(passwordOld, user.password);
-  if (!isOldPasswordCorrect) {
-    return res.status(400).json({
-      status: false,
-      message: 'Password lama salah',
-    });
-  }
+  const { password } = req.body;
 
-  const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$/;
-  if (!passwordPattern.test(newPassword)) {
-    return res.status(400).json({
-      status: false,
-      message: 'Password harus kombinasi huruf besar, huruf kecil, dan angka dengan panjang minimal 6 karakter',
-    });
-  }
-
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   const updatedData = await User.update(
     {
@@ -323,9 +302,9 @@ exports.selfModify = catchAsync(async (req, res) => {
     },
     {
       where: {
-        id: userId,
+        id: req.user.id,
       },
-    }
+    },
   );
 
   res.status(200).json({
@@ -335,12 +314,31 @@ exports.selfModify = catchAsync(async (req, res) => {
   });
 });
 
-exports.cek = catchAsync(async (req, res) => {
-  const id = req.user.id;
-
-  res.json({
-    id: id,
+exports.deleteUser = catchAsync(async (req, res) => {
+  const user = await User.findOne({
+    where: {
+      id: req.params.id,
+    },
   });
+
+  if (!user) {
+    res.status(400).json({
+      status: false,
+      message: 'User not found!',
+    });
+  } else {
+    const data = await User.destroy({
+      where: {
+        id: req.params.id,
+      },
+    });
+
+    res.status(200).json({
+      status: true,
+      message: 'User berhasil dihapus',
+      data: data,
+    });
+  }
 });
 
 exports.whoami = catchAsync(async (req, res) => {
@@ -349,34 +347,5 @@ exports.whoami = catchAsync(async (req, res) => {
     status: true,
     message: 'succes',
     data: user,
-  });
-});
-
-// Fungsi untuk menghapus pengguna
-exports.deleteUser = catchAsync(async (req, res) => {
-  const userId = req.params.id; 
-
-  const user = await User.findOne({
-    where: {
-      id: userId,
-    },
-  });
-
-  if (!user) {
-    return res.status(404).json({
-      status: false,
-      message: 'User not found!',
-    });
-  }
-
-  await User.destroy({
-    where: {
-      id: userId,
-    },
-  });
-
-  res.status(200).json({
-    status: true,
-    message: 'User deleted successfully',
   });
 });

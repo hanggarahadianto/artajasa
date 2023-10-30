@@ -32,10 +32,10 @@
               "type": "object",
               "properties": {
                 "username": {
-                  "example": "Admin5"
+                  "example": "any"
                 },
                 "password": {
-                  "example": "Admin5"
+                  "example": "any"
                 }
               }
             }
@@ -59,14 +59,14 @@
         "description": "",
         "parameters": [
           {
-            "name": "Authorization",
+            "name": "authorization",
             "in": "header",
             "type": "string",
-            "description": "Bearer token required for authentication. Please prepend 'Bearer ' before the token.",
+            "description": "Bearer token required for authentication.",
             "required": true,
-            "default": "Bearer "
+            "pattern": "^Bearer [A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_.+/=]+$"
           }
-        ],             
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -78,7 +78,6 @@
             "description": "Unauthorized"
           }
         }
-        
       }
     },
     "/api/users/self-modify": {
@@ -89,8 +88,9 @@
             "name": "authorization",
             "in": "header",
             "type": "string",
+            "description": "Bearer token required for authentication.",
             "required": true,
-            "default": "Bearer "
+            "pattern": "^Bearer [A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_.+/=]+$"
           },
           {
             "name": "body",
@@ -126,8 +126,9 @@
             "name": "authorization",
             "in": "header",
             "type": "string",
+            "description": "Bearer token required for authentication.",
             "required": true,
-            "default": "Bearer "
+            "pattern": "^Bearer [A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_.+/=]+$"
           },
           {
             "name": "body",
@@ -181,8 +182,9 @@
             "name": "authorization",
             "in": "header",
             "type": "string",
+            "description": "Bearer token required for authentication.",
             "required": true,
-            "default": "Bearer "
+            "pattern": "^Bearer [A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_.+/=]+$"
           }
         ],
         "responses": {
@@ -212,8 +214,9 @@
             "name": "authorization",
             "in": "header",
             "type": "string",
+            "description": "Bearer token required for authentication.",
             "required": true,
-            "default": "Bearer "
+            "pattern": "^Bearer [A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_.+/=]+$"
           }
         ],
         "responses": {
@@ -240,8 +243,9 @@
             "name": "authorization",
             "in": "header",
             "type": "string",
+            "description": "Bearer token required for authentication.",
             "required": true,
-            "default": "Bearer "
+            "pattern": "^Bearer [A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_.+/=]+$"
           },
           {
             "name": "page",
@@ -289,8 +293,9 @@
             "name": "authorization",
             "in": "header",
             "type": "string",
+            "description": "Bearer token required for authentication.",
             "required": true,
-            "default": "Bearer "
+            "pattern": "^Bearer [A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_.+/=]+$"
           },
           {
             "name": "body",
