@@ -322,3 +322,32 @@ exports.whoami = catchAsync(async (req, res) => {
     data: user,
   });
 });
+
+// Fungsi untuk menghapus pengguna
+exports.deleteUser = catchAsync(async (req, res) => {
+  const userId = req.params.id; 
+
+  const user = await User.findOne({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (!user) {
+    return res.status(404).json({
+      status: false,
+      message: 'User not found!',
+    });
+  }
+
+  await User.destroy({
+    where: {
+      id: userId,
+    },
+  });
+
+  res.status(200).json({
+    status: true,
+    message: 'User deleted successfully',
+  });
+});
