@@ -21,7 +21,7 @@ router.put('/self-modify', mid.auth, selfModify);
 
 //admin only
 router.post('/', mid.auth, isAdmin, addUser);
-router.put('/terminate/:id', mid.auth, isAdmin, terUser);
+router.put('/:id', mid.auth, isAdmin, terUser);
 router.get('/GetAllUser', mid.auth, isAdmin, getAllUsers);
 router.delete('/:id', mid.auth, isAdmin, deleteUser);
 router.get('/search', mid.auth, isAdmin, searchUser);

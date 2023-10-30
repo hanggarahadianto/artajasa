@@ -4,7 +4,7 @@ const catchAsync = require('../util/catchAsync');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
-const { Op, where } = require('sequelize');
+const { Op } = require('sequelize');
 
 const checkUsernameExist = async (v) => {
   const data = await User.findOne({
@@ -28,16 +28,16 @@ const userSchema = Joi.object({
     .external(checkUsernameExist),
   password: Joi.string().min(6).pattern(passwordPattern).required().messages({
     'string.pattern.base':
-      'Password harus kombinasi huruf besar, huruf kecil, dan angka',
+      'Password must be a combination of uppercase and lowercase letters, and numbers.',
   }),
   role: Joi.string().valid('admin', 'client').required(),
-  status: Joi.string().valid('active', 'deactive').required(),
+  status: Joi.string().valid('active', 'deactive').default('active'),
 });
 
 const { JWT_SECRET_KEY } = process.env;
 
 exports.addUser = catchAsync(async (req, res) => {
-  const { username, password, role, status } = req.body;
+  const { username, password, role } = req.body;
 
   await userSchema.validateAsync(req.body, { abortEarly: false });
 
@@ -50,12 +50,11 @@ exports.addUser = catchAsync(async (req, res) => {
     username,
     password: hashedPassword,
     role,
-    status,
   });
 
   res.status(200).json({
     status: true,
-    message: 'User berhasil ditambahkan',
+    message: 'User created',
     data: user,
   });
 });
@@ -95,7 +94,7 @@ exports.login = catchAsync(async (req, res) => {
           status: user.status,
         };
 
-        const token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '30m' });
+        const token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '2d' });
 
         res.status(201).json({
           status: true,
@@ -114,7 +113,7 @@ exports.login = catchAsync(async (req, res) => {
 exports.getAllUsers = catchAsync(async (req, res) => {
   const users = await User.findAll({
     where: {
-      role: 'client', // Ubah ke 'client' untuk hanya menampilkan pengguna dengan peran 'client'
+      role: 'client',
     },
   });
 
@@ -123,30 +122,6 @@ exports.getAllUsers = catchAsync(async (req, res) => {
     message: 'All client users',
     data: users,
   });
-});
-
-exports.terUser = catchAsync(async (req, res) => {
-  const user = await User.findOne({
-    where: {
-      id: req.params.id,
-    },
-  });
-
-  if (!user) {
-    res.status(404).json({
-      status: false,
-      message: 'User not found! nih',
-    });
-  } else {
-    user.status = 'deactive';
-    await user.save();
-
-    res.status(200).json({
-      status: true,
-      message: 'User status updated successfully',
-      data: user,
-    });
-  }
 });
 
 exports.searchUser = catchAsync(async (req, res) => {
@@ -221,6 +196,7 @@ exports.searchUser = catchAsync(async (req, res) => {
       username: {
         [Op.like]: `%${username}%`,
       },
+      role: 'client',
     },
     limit: parseInt(limit),
     offset: offset,
