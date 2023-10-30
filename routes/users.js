@@ -8,6 +8,7 @@ const {
   modifyUser,
   whoami,
   selfModify,
+  deleteUser,
 } = require('../app/controllers/userController');
 var router = express.Router();
 const mid = require('../app/middlewares/restrict');
@@ -22,6 +23,7 @@ router.put('/self-modify', mid.auth, selfModify);
 router.post('/', mid.auth, isAdmin, addUser);
 router.put('/terminate/:id', mid.auth, isAdmin, terUser);
 router.get('/GetAllUser', mid.auth, isAdmin, getAllUsers);
+router.delete('/:id', mid.auth, isAdmin, deleteUser);
 router.get('/search', mid.auth, isAdmin, searchUser);
 router.put('/modify/:user_id', mid.auth, isAdmin, modifyUser);
 

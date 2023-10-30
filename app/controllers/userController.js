@@ -283,7 +283,14 @@ exports.modifyUser = async (req, res) => {
 
 // Fungsi modify self
 exports.selfModify = catchAsync(async (req, res) => {
-  const user = req.user.id;
+  const userId = req.user.id;
+  const { passwordOld, password: newPassword } = req.body;
+
+  const user = await User.findOne({
+    where: {
+      id: userId,
+    },
+  });
 
   if (!user) {
     return res.status(401).json({
@@ -292,9 +299,23 @@ exports.selfModify = catchAsync(async (req, res) => {
     });
   }
 
-  const { password } = req.body;
+  const isOldPasswordCorrect = await bcrypt.compare(passwordOld, user.password);
+  if (!isOldPasswordCorrect) {
+    return res.status(400).json({
+      status: false,
+      message: 'Password lama salah',
+    });
+  }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$/;
+  if (!passwordPattern.test(newPassword)) {
+    return res.status(400).json({
+      status: false,
+      message: 'Password harus kombinasi huruf besar, huruf kecil, dan angka dengan panjang minimal 6 karakter',
+    });
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
 
   const updatedData = await User.update(
     {
@@ -302,9 +323,9 @@ exports.selfModify = catchAsync(async (req, res) => {
     },
     {
       where: {
-        id: req.user.id,
+        id: userId,
       },
-    },
+    }
   );
 
   res.status(200).json({
@@ -328,5 +349,34 @@ exports.whoami = catchAsync(async (req, res) => {
     status: true,
     message: 'succes',
     data: user,
+  });
+});
+
+// Fungsi untuk menghapus pengguna
+exports.deleteUser = catchAsync(async (req, res) => {
+  const userId = req.params.id; 
+
+  const user = await User.findOne({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (!user) {
+    return res.status(404).json({
+      status: false,
+      message: 'User not found!',
+    });
+  }
+
+  await User.destroy({
+    where: {
+      id: userId,
+    },
+  });
+
+  res.status(200).json({
+    status: true,
+    message: 'User deleted successfully',
   });
 });
