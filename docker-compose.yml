@@ -1,6 +1,6 @@
 version: "3.7"
 services:
-  app:
+  artajasa-be:
     image: artajasa-be
     build: .
     container_name: artajasa-be
