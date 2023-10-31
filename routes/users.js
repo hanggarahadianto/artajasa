@@ -12,15 +12,15 @@ const {
 } = require('../app/controllers/userController');
 var router = express.Router();
 const mid = require('../app/middlewares/restrict');
-const { isAdmin } = require('../app/middlewares/rbac');
+const { isAdmin, isSuperAdmin } = require('../app/middlewares/rbac');
+const { loginUser } = require('../app/controllers/authController');
 
 //all user
-router.post('/login', login);
 router.get('/whoami', mid.auth, whoami);
 router.put('/self-modify', mid.auth, selfModify);
 
 //admin only
-router.post('/', mid.auth, isAdmin, addUser);
+router.post('/', mid.auth, isSuperAdmin, addUser);
 router.put('/:id', mid.auth, isAdmin, terUser);
 router.get('/GetAllUser', mid.auth, isAdmin, getAllUsers);
 router.delete('/:id', mid.auth, isAdmin, deleteUser);

@@ -1,5 +1,5 @@
 const Joi = require('joi');
-const { User } = require('../../database/models');
+const { User, UserRole } = require('../../database/models');
 const catchAsync = require('../util/catchAsync');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
@@ -30,14 +30,14 @@ const userSchema = Joi.object({
     'string.pattern.base':
       'Password must be a combination of uppercase and lowercase letters, and numbers.',
   }),
-  role: Joi.string().valid('admin', 'client').required(),
   status: Joi.string().valid('active', 'deactive').default('active'),
+  roleId: Joi.required(),
 });
 
 const { JWT_SECRET_KEY } = process.env;
 
 exports.addUser = catchAsync(async (req, res) => {
-  const { username, password, role } = req.body;
+  const { username, password, roleId } = req.body;
 
   await userSchema.validateAsync(req.body, { abortEarly: false });
 
@@ -45,18 +45,27 @@ exports.addUser = catchAsync(async (req, res) => {
 
   const userId = uuidv4();
 
-  const user = await User.create({
+  await User.create({
     id: userId,
     username,
     password: hashedPassword,
-    role,
-  });
-
-  res.status(200).json({
-    status: true,
-    message: 'User created',
-    data: user,
-  });
+  })
+    .then((user) => {
+      UserRole.create({ userId: user.id, roleId })
+        .then((userRole) => {
+          res.status(201).json({
+            status: true,
+            message: 'User Berhasil Dibuat',
+            data: { user, userRole },
+          });
+        })
+        .catch((error) => {
+          res.status(400).json({ status: false, message: error.message });
+        });
+    })
+    .catch((error) => {
+      res.status(400).json({ status: false, message: error.message });
+    });
 });
 
 exports.login = catchAsync(async (req, res) => {
