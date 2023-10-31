@@ -10,8 +10,10 @@ var swaggerDocument = require('./swagger-output.json'); // Ubah pemanggilan file
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var authRouter = require('./routes/auth');
 var inquiryRouter = require('./routes/inquiry');
 var paymentRouter = require('./routes/payment');
+var messageRouter = require('./routes/message');
 
 var app = express();
 app.use(logger('dev'));
@@ -27,5 +29,7 @@ app.use('/', indexRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/inquiry', inquiryRouter);
 app.use('/api/paycredit', paymentRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/message', messageRouter);
 
 module.exports = app;
