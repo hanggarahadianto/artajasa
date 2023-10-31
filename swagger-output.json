@@ -11,16 +11,7 @@
     "http"
   ],
   "paths": {
-    "/": {
-      "get": {
-        "description": "",
-        "responses": {
-          "default": {
-            "description": ""
-          }
-        }
-      }
-    },
+
     "/api/users/login": {
       "post": {
         "description": "",
