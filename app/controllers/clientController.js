@@ -34,7 +34,7 @@ module.exports = {
     const client = await Client.create({
       formatMessageId,
     }).then((client) => {
-      const hasClient = Client.create({});
+      create.c;
     });
   }),
 };

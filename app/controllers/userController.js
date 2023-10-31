@@ -6,6 +6,7 @@ const {
   Client,
   FormatMessage,
   Role,
+  ClientHasAdmin,
 } = require('../../database/models');
 const catchAsync = require('../util/catchAsync');
 const bcrypt = require('bcrypt');
@@ -41,99 +42,73 @@ const userSchema = Joi.object({
   roleId: Joi.required(),
   name: Joi.string(),
   formatMessageId: Joi.number(),
+  adminId: Joi.string(),
 });
 
 exports.addUser = catchAsync(async (req, res) => {
-  const { username, password, roleId } = req.body;
-
   try {
-    await userSchema.validateAsync(req.body, {
-      abortEarly: false,
-    });
+    await userSchema.validateAsync(req.body, { abortEarly: false });
+
+    const { username, password, roleId } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const userId = uuidv4();
-
     let user;
     let userRole;
     let client;
     let admin;
 
     if (roleId === 2) {
-      const { name } = req.body;
-      if (!name) {
-        res.status(400).json({
+      const { name, formatMessageId } = req.body;
+      if (!name || !formatMessageId) {
+        return res.status(400).json({
           status: false,
-          message: 'name is required',
+          message: 'Name and formatMessageId are required for role 2.',
         });
-        return;
       }
-    }
 
-    if (roleId === 3) {
-      const { formatMessageId } = req.body;
-      if (!formatMessageId) {
-        res.status(400).json({
-          status: false,
-          message: 'formatMessageId is required',
-        });
-        return;
-      }
-    }
-
-    user = await User.create({
-      id: userId,
-      username,
-      password: hashedPassword,
-      roleId,
-    });
-
-    if (roleId === 2) {
-      const adminId = uuidv4();
-      admin = await Admin.create({
-        id: adminId,
-        name: req.body.name,
-        userId: user.id,
+      user = await User.create({
+        id: userId,
+        username,
+        password: hashedPassword,
+        roleId,
       });
 
-      userRole = await UserRole.create({ userId: user.id, roleId });
-
-      res.status(201).json({
-        status: true,
-        message: 'Create User Success',
-        data: { user, userRole, admin },
-      });
+      // Further logic for role 2
     } else if (roleId === 3) {
-      const clientId = uuidv4();
-      const { formatMessageId } = req.body;
-      if (!formatMessageId) {
-        res.status(400).json({
+      const { name, formatMessageId, adminId } = req.body;
+      if (!name || !formatMessageId || !adminId) {
+        return res.status(400).json({
           status: false,
-          message: 'formatMessageId is required',
-        });
-      } else {
-        client = await Client.create({
-          id: clientId,
-          formatMessageId,
-          userId: user.id,
-        });
-
-        userRole = await UserRole.create({ userId: user.id, roleId });
-
-        res.status(201).json({
-          status: true,
-          message: 'User Berhasil Dibuat',
-          data: { user, userRole, client },
+          message:
+            'Name, formatMessageId, and adminId are required for role 3.',
         });
       }
-    } else {
-      userRole = await UserRole.create({ userId: user.id, roleId });
 
-      res.status(201).json({
-        status: true,
-        message: 'User Berhasil Dibuat',
-        data: { user, userRole },
+      user = await User.create({
+        id: userId,
+        username,
+        password: hashedPassword,
+        roleId,
       });
+
+      // Further logic for role 3
+    } else {
+      user = await User.create({
+        id: userId,
+        username,
+        password: hashedPassword,
+        roleId,
+      });
+
+      // Further logic for other roles
     }
+
+    // Sending success response
+    res.status(201).json({
+      status: true,
+      message: 'Create User Success',
+      data: { user, userRole, client, admin },
+    });
   } catch (error) {
     res.status(400).json({ status: false, message: error.message });
   }
@@ -239,7 +214,10 @@ exports.getAllClients = catchAsync(async (req, res) => {
           {
             model: Client,
             as: 'client',
-            include: FormatMessage,
+            include: [
+              { model: FormatMessage },
+              { model: ClientHasAdmin, include: Admin },
+            ],
           },
         ],
       },
@@ -261,6 +239,7 @@ exports.getAllClients = catchAsync(async (req, res) => {
         username: user.User.username,
         role: user.Role.roleName,
         formatMessage: user.User.client[0].FormatMessage.messageType,
+        admin: user.User.client[0].ClientHasAdmins[0].Admin,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       };
