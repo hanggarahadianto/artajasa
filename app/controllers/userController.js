@@ -1,5 +1,12 @@
 const Joi = require('joi');
-const { User, UserRole } = require('../../database/models');
+const {
+  User,
+  UserRole,
+  Admin,
+  Client,
+  FormatMessage,
+  Role,
+} = require('../../database/models');
 const catchAsync = require('../util/catchAsync');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
@@ -32,105 +39,239 @@ const userSchema = Joi.object({
   }),
   status: Joi.string().valid('active', 'deactive').default('active'),
   roleId: Joi.required(),
+  name: Joi.string(),
+  formatMessageId: Joi.number(),
 });
-
-const { JWT_SECRET_KEY } = process.env;
 
 exports.addUser = catchAsync(async (req, res) => {
   const { username, password, roleId } = req.body;
 
-  await userSchema.validateAsync(req.body, { abortEarly: false });
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const userId = uuidv4();
-
-  await User.create({
-    id: userId,
-    username,
-    password: hashedPassword,
-  })
-    .then((user) => {
-      UserRole.create({ userId: user.id, roleId })
-        .then((userRole) => {
-          res.status(201).json({
-            status: true,
-            message: 'User Berhasil Dibuat',
-            data: { user, userRole },
-          });
-        })
-        .catch((error) => {
-          res.status(400).json({ status: false, message: error.message });
-        });
-    })
-    .catch((error) => {
-      res.status(400).json({ status: false, message: error.message });
+  try {
+    await userSchema.validateAsync(req.body, {
+      abortEarly: false,
     });
-});
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const userId = uuidv4();
 
-exports.login = catchAsync(async (req, res) => {
-  const { username, password } = req.body;
+    let user;
+    let userRole;
+    let client;
+    let admin;
 
-  const user = await User.findOne({
-    where: {
-      username: username,
-    },
-  });
-
-  if (!user) {
-    res.status(404).json({
-      status: false,
-      message: 'User not found!',
-    });
-  } else {
-    const isPassCorrect = await bcrypt.compare(password, user.password);
-    if (!isPassCorrect) {
-      res.status(400).json({
-        status: false,
-        message: 'Password incorrect',
-      });
-    } else {
-      if (user.status != 'active') {
+    if (roleId === 2) {
+      const { name } = req.body;
+      if (!name) {
         res.status(400).json({
           status: false,
-          message: 'Your account has suspended!',
+          message: 'name is required',
+        });
+        return;
+      }
+    }
+
+    if (roleId === 3) {
+      const { formatMessageId } = req.body;
+      if (!formatMessageId) {
+        res.status(400).json({
+          status: false,
+          message: 'formatMessageId is required',
+        });
+        return;
+      }
+    }
+
+    user = await User.create({
+      id: userId,
+      username,
+      password: hashedPassword,
+      roleId,
+    });
+
+    if (roleId === 2) {
+      const adminId = uuidv4();
+      admin = await Admin.create({
+        id: adminId,
+        name: req.body.name,
+        userId: user.id,
+      });
+
+      userRole = await UserRole.create({ userId: user.id, roleId });
+
+      res.status(201).json({
+        status: true,
+        message: 'Create User Success',
+        data: { user, userRole, admin },
+      });
+    } else if (roleId === 3) {
+      const clientId = uuidv4();
+      const { formatMessageId } = req.body;
+      if (!formatMessageId) {
+        res.status(400).json({
+          status: false,
+          message: 'formatMessageId is required',
         });
       } else {
-        payload = {
-          id: user.id,
-          username: user.username,
-          role: user.role,
-          status: user.status,
-        };
+        client = await Client.create({
+          id: clientId,
+          formatMessageId,
+          userId: user.id,
+        });
 
-        const token = jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: '2d' });
+        userRole = await UserRole.create({ userId: user.id, roleId });
 
         res.status(201).json({
           status: true,
-          message: 'Login success',
-          data: {
-            token: token,
-            payload,
-          },
+          message: 'User Berhasil Dibuat',
+          data: { user, userRole, client },
         });
       }
+    } else {
+      userRole = await UserRole.create({ userId: user.id, roleId });
+
+      res.status(201).json({
+        status: true,
+        message: 'User Berhasil Dibuat',
+        data: { user, userRole },
+      });
     }
+  } catch (error) {
+    res.status(400).json({ status: false, message: error.message });
   }
 });
 
-// Fungsi untuk mendapatkan semua pengguna
 exports.getAllUsers = catchAsync(async (req, res) => {
-  const users = await User.findAll({
-    where: {
-      role: 'client',
-    },
+  const { page = 1, limit = 10, username = '' } = req.query;
+  const offset = (page - 1) * limit;
+
+  const whereCondition = {};
+  if (username) {
+    whereCondition['$User.username$'] = { [Op.like]: `%${username}%` };
+  }
+
+  const users = await UserRole.findAndCountAll({
+    include: [{ model: User }, { model: Role }],
+    where: whereCondition,
+    limit: parseInt(limit),
+    offset: offset,
+  });
+
+  if (users.rows.length <= 0) {
+    return res.status(404).json({
+      status: false,
+      message: 'Data not found!',
+    });
+  }
+
+  const data = users.rows.map((e) => {
+    return {
+      id: e.User.id,
+      username: e.User.username,
+      role: e.Role.roleName,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+    };
   });
 
   res.status(200).json({
     status: true,
-    message: 'All client users',
-    data: users,
+    message: 'Success Get Admin',
+    currentPage: page,
+    totalItems: users.count,
+    totalPages: Math.ceil(users.count / limit),
+    data,
   });
+});
+
+exports.getAllAdmin = catchAsync(async (req, res) => {
+  const admin = await UserRole.findAll({
+    where: {
+      roleId: 2,
+    },
+    include: [
+      {
+        model: User,
+        include: [
+          {
+            model: Admin,
+            as: 'admin',
+          },
+        ],
+      },
+      {
+        model: Role,
+      },
+    ],
+  });
+
+  if (admin.length <= 0) {
+    res.status(404).json({
+      status: false,
+      message: 'Data not found!',
+    });
+  } else {
+    const data = admin.map((e) => {
+      return {
+        id: e.User.id,
+        username: e.User.username,
+        role: e.Role.roleName,
+        name: e.User.admin[0].name,
+        createdAt: e.createdAt,
+        updatedAt: e.updatedAt,
+      };
+    });
+    res.status(200).json({
+      status: true,
+      message: 'Success Get Admin',
+      data,
+    });
+  }
+});
+
+exports.getAllClients = catchAsync(async (req, res) => {
+  const users = await UserRole.findAll({
+    where: {
+      roleId: 3,
+    },
+    include: [
+      {
+        model: User,
+        include: [
+          {
+            model: Client,
+            as: 'client',
+            include: FormatMessage,
+          },
+        ],
+      },
+      {
+        model: Role,
+      },
+    ],
+  });
+
+  if (users.length <= 0) {
+    res.status(404).json({
+      status: false,
+      message: 'Users not found!',
+    });
+  } else {
+    const data = users.map((user) => {
+      return {
+        id: user.User.id,
+        username: user.User.username,
+        role: user.Role.roleName,
+        formatMessage: user.User.client[0].FormatMessage.messageType,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      };
+    });
+
+    res.status(200).json({
+      status: true,
+      message: 'All client users',
+      data,
+    });
+  }
 });
 
 exports.searchUser = catchAsync(async (req, res) => {
@@ -156,23 +297,7 @@ exports.searchUser = catchAsync(async (req, res) => {
     limit: parseInt(limit),
   });
 });
-
-// Fungsi modifikasi pengguna
-exports.getAllUsers = catchAsync(async (req, res) => {
-  const users = await User.findAll({
-    where: {
-      role: 'client',
-    },
-  });
-
-  res.status(200).json({
-    status: true,
-    message: 'All client users',
-    data: users,
-  });
-});
-
-exports.terUser = catchAsync(async (req, res) => {
+exports.terUser = terUser = catchAsync(async (req, res) => {
   const user = await User.findOne({
     where: {
       id: req.params.id,
@@ -196,33 +321,7 @@ exports.terUser = catchAsync(async (req, res) => {
   }
 });
 
-exports.searchUser = catchAsync(async (req, res) => {
-  const { page = 1, limit = 10, username = '' } = req.query;
-  const offset = (page - 1) * limit;
-
-  const users = await User.findAndCountAll({
-    where: {
-      username: {
-        [Op.like]: `%${username}%`,
-      },
-      role: 'client',
-    },
-    limit: parseInt(limit),
-    offset: offset,
-  });
-
-  res.status(200).json({
-    status: true,
-    message: 'User search results',
-    data: users.rows,
-    total: users.count,
-    page: parseInt(page),
-    limit: parseInt(limit),
-  });
-});
-
-// Fungsi modifikasi pengguna
-exports.modifyUser = async (req, res) => {
+exports.modifyUser = catchAsync(async (req, res) => {
   const { username, password } = req.body;
 
   const user = await User.findOne({
@@ -264,9 +363,7 @@ exports.modifyUser = async (req, res) => {
       });
     }
   }
-};
-
-// Fungsi modify self
+});
 exports.selfModify = catchAsync(async (req, res) => {
   const user = req.user.id;
 
@@ -298,7 +395,6 @@ exports.selfModify = catchAsync(async (req, res) => {
     data: updatedData,
   });
 });
-
 exports.deleteUser = catchAsync(async (req, res) => {
   const user = await User.findOne({
     where: {
@@ -325,7 +421,6 @@ exports.deleteUser = catchAsync(async (req, res) => {
     });
   }
 });
-
 exports.whoami = catchAsync(async (req, res) => {
   const user = req.user;
   return res.status(200).json({
