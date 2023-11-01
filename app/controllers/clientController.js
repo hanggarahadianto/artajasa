@@ -95,7 +95,7 @@ exports.getAllClients = catchAsync(async (req, res) => {
           {
             model: Client,
             as: 'client',
-            include: [{ model: FormatMessage }],
+            include: [{ model: FormatMessage }, { model: Admin }],
           },
         ],
       },
@@ -117,7 +117,7 @@ exports.getAllClients = catchAsync(async (req, res) => {
         username: user.User.username,
         role: user.Role.roleName,
         formatMessage: user.User.client[0].FormatMessage.messageType,
-        // admin: user.User.client[0].ClientHasAdmins[0].Admin,
+        adminId: user.User.client[0].adminId,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       };
@@ -126,7 +126,7 @@ exports.getAllClients = catchAsync(async (req, res) => {
     res.status(200).json({
       status: true,
       message: 'All client users',
-      users,
+      data,
     });
   }
 });
