@@ -140,9 +140,15 @@ exports.generateQR = async (req, res) => {
       'base64',
     );
 
-    console.log(`QR Code successfully generated as ${fileName}`);
+    const host = req.get('host');
+    const protocol = req.protocol;
 
-    // Mengirimkan QR Code sebagai respons
+    res.status(201).json({
+      status: true,
+      message: 'QR Generate succesfully',
+      qr: `${protocol}://${host}/qr/${fileName}`,
+    });
+
     res.sendFile(filePath);
   } catch (error) {
     console.error('Error generating QR Code:', error);
