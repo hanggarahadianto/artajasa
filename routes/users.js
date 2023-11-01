@@ -20,7 +20,7 @@ router.get('/whoami', mid.auth, whoami);
 // router.put('/self-modify', mid.auth, selfModify);
 
 //admin only
-router.post('/', mid.auth, isSuperAdmin, addUser);
+router.post('/admin', mid.auth, isSuperAdmin, addUser);
 // router.put('/:id', mid.auth, isAdmin, terUser);
 router.get('/get-all-users', mid.auth, isSuperAdmin, getAllUsers);
 router.get('/get-all-admin', mid.auth, isSuperAdmin, getAllAdmin);

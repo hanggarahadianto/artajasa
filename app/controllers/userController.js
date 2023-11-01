@@ -39,99 +39,42 @@ const userSchema = Joi.object({
       'Password must be a combination of uppercase and lowercase letters, and numbers.',
   }),
   status: Joi.string().valid('active', 'deactive').default('active'),
-  roleId: Joi.required(),
-  name: Joi.string(),
-  formatMessageId: Joi.number(),
-  adminId: Joi.string(),
+  name: Joi.string().required(),
 });
 
 exports.addUser = catchAsync(async (req, res) => {
   try {
     await userSchema.validateAsync(req.body, { abortEarly: false });
 
-    const { username, password, roleId } = req.body;
+    const { username, password, name } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const userId = uuidv4();
-    let user;
-    let userRole;
-    let client;
-    let admin;
 
-    if (roleId === 2) {
-      const { name, formatMessageId } = req.body;
-      if (!name || !formatMessageId) {
-        return res.status(400).json({
-          status: false,
-          message: 'Name and formatMessageId are required for role 2.',
-        });
-      }
+    const roleType = 2;
 
-      user = await User.create({
-        id: userId,
-        username,
-        password: hashedPassword,
-        roleId,
-      });
+    const user = await User.create({
+      id: userId,
+      username,
+      password: hashedPassword,
+      roleId: roleType,
+    });
 
-      // Further logic for role 2
-    } else if (roleId === 3) {
-      const clientId = uuidv4();
-      const { formatMessageId, adminId } = req.body;
-      if (!formatMessageId) {
-        res.status(400).json({
-          status: false,
-          message: 'formatMessageId is required',
-        });
-      } else if (!adminId) {
-        res.status(400).json({
-          status: false,
-          message: 'adminId is required',
-        });
-      } else {
-        client = await Client.create({
-          id: clientId,
-          formatMessageId,
-          userId: user.id,
-        });
+    const userRole = await UserRole.create({
+      userId: user.id,
+      roleId: roleType,
+    });
 
-        const clientHasAdmin = await ClientHasAdmin.create({
-          clientId: client.id,
-          adminId,
-        });
-
-        userRole = await UserRole.create({ userId: user.id, roleId });
-
-        res.status(201).json({
-          status: true,
-          message: 'User Berhasil Dibuat',
-          data: { user, userRole, client, clientHasAdmin },
-        });
-      }
-
-      user = await User.create({
-        id: userId,
-        username,
-        password: hashedPassword,
-        roleId,
-      });
-
-      // Further logic for role 3
-    } else {
-      user = await User.create({
-        id: userId,
-        username,
-        password: hashedPassword,
-        roleId,
-      });
-
-      // Further logic for other roles
-    }
+    const admin = await Admin.create({
+      id: uuidv4(),
+      userId: user.id,
+      name,
+    });
 
     // Sending success response
     res.status(201).json({
       status: true,
       message: 'Create User Success',
-      data: { user, userRole, client, admin },
+      data: { user, userRole, admin },
     });
   } catch (error) {
     res.status(400).json({ status: false, message: error.message });
