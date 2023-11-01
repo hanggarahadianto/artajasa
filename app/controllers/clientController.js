@@ -119,7 +119,15 @@ exports.getAllClients = catchAsync(async (req, res) => {
           {
             model: Client,
             as: 'client',
-            include: [{ model: FormatMessage }, { model: Admin }],
+            include: [
+              {
+                model: FormatMessage,
+                attributes: {
+                  exclude: ['id', 'createdAt', 'updatedAt'],
+                },
+              },
+              { model: Admin },
+            ],
           },
         ],
       },
