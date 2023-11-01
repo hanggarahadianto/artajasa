@@ -7,12 +7,39 @@ const {
   FormatMessage,
   Admin,
   Client,
-  ClientHasAdmin,
 } = require('../../database/models');
 const { v4: uuidv4 } = require('uuid');
-
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+
+const checkUsernameExist = async (v) => {
+  const data = await User.findOne({
+    where: {
+      username: v,
+    },
+  });
+
+  if (data) {
+    throw new Error('Username already exists');
+  }
+};
+
+const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$/;
+
+const addClientSchema = Joi.object({
+  username: Joi.string()
+    .min(3)
+    .max(255)
+    .required()
+    .external(checkUsernameExist),
+  password: Joi.string().min(6).pattern(passwordPattern).required().messages({
+    'string.pattern.base':
+      'Password must be a combination of uppercase and lowercase letters, and numbers.',
+  }),
+  status: Joi.string().valid('active', 'deactive').default('active'),
+  adminId: Joi.string().required(),
+  formatMessageId: Joi.number(),
+});
 
 exports.GetAllFormatMessage = catchAsync(async (req, res) => {
   const format = await FormatMessage.findAll();
@@ -32,7 +59,9 @@ exports.GetAllFormatMessage = catchAsync(async (req, res) => {
 });
 
 exports.addClient = catchAsync(async (req, res) => {
-  const { username, password, adminId, formatMessageId } = req.body;
+  const { username, password, adminId } = req.body;
+
+  await addClientSchema.validateAsync(req.body, { abortEarly: false });
 
   const adminExist = await Admin.findOne({
     where: {
@@ -40,28 +69,24 @@ exports.addClient = catchAsync(async (req, res) => {
     },
   });
 
-  const fmExist = await FormatMessage.findOne({
-    where: {
-      id: formatMessageId,
-    },
-  });
+  // const fmExist = await FormatMessage.findOne({
+  //   where: {
+  //     id: formatMessageId,
+  //   },
+  // });
 
   if (!adminExist) {
     res.status(404).json({
       status: false,
       message: "Admin with the adminId isn't found",
     });
-  } else if (!fmExist) {
-    res.status(404).json({
-      status: false,
-      message: "Format Message with the formatMessageId isn't found",
-    });
   } else {
     const userId = uuidv4();
+    const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
       id: userId,
       username,
-      password,
+      password: hashedPassword,
     });
     const userRole = await UserRole.create({
       userId: user.id,
@@ -69,7 +94,6 @@ exports.addClient = catchAsync(async (req, res) => {
     });
     const client = await Client.create({
       id: uuidv4(),
-      formatMessageId,
       adminId: adminExist.userId,
       userId: user.id,
     });
@@ -116,7 +140,7 @@ exports.getAllClients = catchAsync(async (req, res) => {
         id: user.User.id,
         username: user.User.username,
         role: user.Role.roleName,
-        formatMessage: user.User.client[0].FormatMessage.messageType,
+        formatMessage: user.User.client[0].FormatMessage,
         adminId: user.User.client[0].adminId,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,

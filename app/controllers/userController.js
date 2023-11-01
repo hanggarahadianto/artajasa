@@ -6,7 +6,6 @@ const {
   Client,
   FormatMessage,
   Role,
-  ClientHasAdmin,
 } = require('../../database/models');
 const catchAsync = require('../util/catchAsync');
 const bcrypt = require('bcrypt');
@@ -127,49 +126,49 @@ exports.getAllUsers = catchAsync(async (req, res) => {
 });
 
 exports.getAllAdmin = catchAsync(async (req, res) => {
-  const admin = await UserRole.findAll({
-    where: {
-      roleId: 2,
-    },
-    include: [
-      {
-        model: User,
-        include: [
-          {
-            model: Admin,
-            as: 'admin',
-          },
-        ],
-      },
-      {
-        model: Role,
-      },
-    ],
+  const { page = 1, limit = 10, username = '' } = req.query;
+  const offset = (page - 1) * limit;
+
+  const whereCondition = {
+    '$Role.id$': 2,
+  };
+  if (username) {
+    whereCondition['$User.username$'] = { [Op.like]: `%${username}%` };
+  }
+
+  const users = await UserRole.findAndCountAll({
+    include: [{ model: User }, { model: Role }],
+    where: whereCondition,
+    limit: parseInt(limit),
+    offset: offset,
   });
 
-  if (admin.length <= 0) {
-    res.status(404).json({
+  if (users.rows.length <= 0) {
+    return res.status(404).json({
       status: false,
       message: 'Data not found!',
     });
-  } else {
-    const data = admin.map((e) => {
-      return {
-        id: e.User.admin[0].id,
-        userId: e.User.id,
-        username: e.User.username,
-        role: e.Role.roleName,
-        name: e.User.admin[0].name,
-        createdAt: e.createdAt,
-        updatedAt: e.updatedAt,
-      };
-    });
-    res.status(200).json({
-      status: true,
-      message: 'Success Get Admin',
-      data,
-    });
   }
+
+  const data = users.rows.map((e) => {
+    return {
+      id: e.User.id,
+      username: e.User.username,
+      status: e.User.status,
+      role: e.Role.roleName,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+    };
+  });
+
+  res.status(200).json({
+    status: true,
+    message: 'Success Get Users Admin',
+    currentPage: page,
+    totalItems: users.count,
+    totalPages: Math.ceil(users.count / limit),
+    data,
+  });
 });
 
 exports.getAllClientByAdmin = catchAsync(async (req, res) => {
