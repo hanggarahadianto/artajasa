@@ -9,7 +9,6 @@ const {
   whoami,
   selfModify,
   deleteUser,
-  getAllClients,
   getAllAdmin,
 } = require('../app/controllers/userController');
 var router = express.Router();
@@ -24,7 +23,6 @@ router.get('/whoami', mid.auth, whoami);
 router.post('/', mid.auth, isSuperAdmin, addUser);
 // router.put('/:id', mid.auth, isAdmin, terUser);
 router.get('/get-all-users', mid.auth, isSuperAdmin, getAllUsers);
-router.get('/get-all-client', mid.auth, isSuperAdmin, getAllClients);
 router.get('/get-all-admin', mid.auth, isSuperAdmin, getAllAdmin);
 // router.delete('/:id', mid.auth, isAdmin, deleteUser);
 // router.get('/search', mid.auth, isAdmin, searchUser);

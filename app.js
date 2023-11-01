@@ -14,6 +14,7 @@ var authRouter = require('./routes/auth');
 var inquiryRouter = require('./routes/inquiry');
 var paymentRouter = require('./routes/payment');
 var messageRouter = require('./routes/message');
+var clientRouter = require('./routes/client');
 
 var app = express();
 app.use(logger('dev'));
@@ -31,5 +32,6 @@ app.use('/api/inquiry', inquiryRouter);
 app.use('/api/paycredit', paymentRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/message', messageRouter);
+app.use('/api/client', clientRouter);
 
 module.exports = app;
