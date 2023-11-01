@@ -59,9 +59,9 @@ exports.GetAllFormatMessage = catchAsync(async (req, res) => {
 });
 
 exports.addClient = catchAsync(async (req, res) => {
-  const { username, password, adminId } = req.body;
-
   await addClientSchema.validateAsync(req.body, { abortEarly: false });
+
+  const { username, password, adminId } = req.body;
 
   const adminExist = await Admin.findOne({
     where: {
@@ -151,6 +151,46 @@ exports.getAllClients = catchAsync(async (req, res) => {
       status: true,
       message: 'All client users',
       data,
+    });
+  }
+});
+
+exports.updateClient = catchAsync(async (req, res) => {
+  const data = await Client.findOne({
+    where: {
+      userId: req.params.id,
+    },
+  });
+
+  if (data) {
+    const { formatMessageId } = req.body;
+
+    await data.update(
+      {
+        formatMessageId,
+      },
+      {
+        where: {
+          userId: req.params.id,
+        },
+      },
+    );
+
+    const updatedClient = await Client.findOne({
+      where: {
+        userId: req.params.id,
+      },
+    });
+
+    res.status(200).json({
+      status: true,
+      message: 'Success update client!',
+      updatedClient,
+    });
+  } else {
+    res.status(404).json({
+      status: false,
+      message: 'Client not found!',
     });
   }
 });

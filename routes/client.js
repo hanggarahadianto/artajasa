@@ -2,6 +2,7 @@ var express = require('express');
 const {
   addClient,
   getAllClients,
+  updateClient,
 } = require('../app/controllers/clientController');
 var router = express.Router();
 
@@ -10,5 +11,6 @@ const { isSuperAdmin } = require('../app/middlewares/rbac');
 
 router.post('/', auth, isSuperAdmin, addClient);
 router.get('/', auth, isSuperAdmin, getAllClients);
+router.put('/:id', updateClient);
 
 module.exports = router;

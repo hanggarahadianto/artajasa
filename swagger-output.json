@@ -173,6 +173,21 @@
             "name": "authorization",
             "in": "header",
             "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "username",
+            "in": "query",
+            "type": "string"
           }
         ],
         "responses": {
@@ -245,9 +260,6 @@
                   "example": "any"
                 },
                 "adminId": {
-                  "example": "any"
-                },
-                "formatMessageId": {
                   "example": "any"
                 }
               }
@@ -367,15 +379,34 @@
         }
       }
     },
-    "/api/inquiry/qr-generate": {
+    "/api/inquiry/qr-generate/{id}": {
       "post": {
         "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
           },
-          "500": {
-            "description": "Internal Server Error"
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
         }
       }
