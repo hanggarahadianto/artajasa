@@ -36,7 +36,7 @@ exports.addClient = catchAsync(async (req, res) => {
 
   const adminExist = await Admin.findOne({
     where: {
-      id: adminId,
+      userId: adminId,
     },
   });
 
@@ -70,12 +70,8 @@ exports.addClient = catchAsync(async (req, res) => {
     const client = await Client.create({
       id: uuidv4(),
       formatMessageId,
-      adminId,
+      adminId: adminExist.userId,
       userId: user.id,
-    });
-    const clientHasAdmin = await ClientHasAdmin.create({
-      clientId: client.id,
-      adminId,
     });
 
     res.status(200).json({
@@ -83,7 +79,6 @@ exports.addClient = catchAsync(async (req, res) => {
       data: user,
       userRole,
       client,
-      clientHasAdmin,
     });
   }
 });
@@ -100,10 +95,7 @@ exports.getAllClients = catchAsync(async (req, res) => {
           {
             model: Client,
             as: 'client',
-            include: [
-              { model: FormatMessage },
-              { model: ClientHasAdmin, include: Admin },
-            ],
+            include: [{ model: FormatMessage }],
           },
         ],
       },
@@ -125,7 +117,7 @@ exports.getAllClients = catchAsync(async (req, res) => {
         username: user.User.username,
         role: user.Role.roleName,
         formatMessage: user.User.client[0].FormatMessage.messageType,
-        admin: user.User.client[0].ClientHasAdmins[0].Admin,
+        // admin: user.User.client[0].ClientHasAdmins[0].Admin,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       };
@@ -134,7 +126,7 @@ exports.getAllClients = catchAsync(async (req, res) => {
     res.status(200).json({
       status: true,
       message: 'All client users',
-      data,
+      users,
     });
   }
 });

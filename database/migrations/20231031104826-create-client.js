@@ -14,6 +14,9 @@ module.exports = {
       formatMessageId: {
         type: Sequelize.INTEGER,
       },
+      adminId: {
+        type: Sequelize.STRING,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

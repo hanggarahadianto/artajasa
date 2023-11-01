@@ -27,11 +27,11 @@ app.use(cors({ origin: '*' }));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use('/', indexRouter);
+app.use('/api/auth', authRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/client', clientRouter);
 app.use('/api/inquiry', inquiryRouter);
 app.use('/api/paycredit', paymentRouter);
-app.use('/api/auth', authRouter);
 app.use('/api/message', messageRouter);
-app.use('/api/client', clientRouter);
 
 module.exports = app;

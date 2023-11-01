@@ -107,6 +107,7 @@ exports.getAllUsers = catchAsync(async (req, res) => {
     return {
       id: e.User.id,
       username: e.User.username,
+      status: e.User.status,
       role: e.Role.roleName,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
@@ -152,8 +153,8 @@ exports.getAllAdmin = catchAsync(async (req, res) => {
   } else {
     const data = admin.map((e) => {
       return {
+        id: e.User.admin[0].id,
         userId: e.User.id,
-        adminId: e.User.admin[0].id,
         username: e.User.username,
         role: e.Role.roleName,
         name: e.User.admin[0].name,
@@ -165,6 +166,43 @@ exports.getAllAdmin = catchAsync(async (req, res) => {
       status: true,
       message: 'Success Get Admin',
       data,
+    });
+  }
+});
+
+exports.getAllClientByAdmin = catchAsync(async (req, res) => {
+  const client = await Client.findAll({
+    where: {
+      adminId: req.user.id,
+    },
+    include: [
+      {
+        model: User,
+      },
+      { model: FormatMessage },
+    ],
+  });
+
+  if (client.length <= 0) {
+    res.status(404).json({
+      status: false,
+      message: 'Client not found!',
+    });
+  } else {
+    const data = client.map((e) => {
+      return {
+        id: e.id,
+        userId: e.userId,
+        username: e.User.username,
+        formatMessage: e.FormatMessage.messageType,
+        createdAt: e.createdAt,
+        updatedAt: e.updatedAt,
+      };
+    });
+    res.status(200).json({
+      status: true,
+      message: 'Client Found!',
+      data: data,
     });
   }
 });
