@@ -89,6 +89,8 @@ exports.getAllUsers = catchAsync(async (req, res) => {
     whereCondition['$User.username$'] = { [Op.like]: `%${username}%` };
   }
 
+  whereCondition['$Role.id$'] = { [Op.not]: 1 };
+
   const users = await UserRole.findAndCountAll({
     include: [{ model: User }, { model: Role }],
     where: whereCondition,
