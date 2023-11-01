@@ -70,7 +70,6 @@ exports.addUser = catchAsync(async (req, res) => {
       name,
     });
 
-    // Sending success response
     res.status(201).json({
       status: true,
       message: 'Create User Success',
@@ -153,7 +152,8 @@ exports.getAllAdmin = catchAsync(async (req, res) => {
   } else {
     const data = admin.map((e) => {
       return {
-        id: e.User.id,
+        userId: e.User.id,
+        adminId: e.User.admin[0].id,
         username: e.User.username,
         role: e.Role.roleName,
         name: e.User.admin[0].name,
