@@ -156,6 +156,9 @@ exports.getAllClients = catchAsync(async (req, res) => {
 });
 
 exports.updateClient = catchAsync(async (req, res) => {
+  const adminID = req.user.id;
+  const { formatMessageId } = req.body;
+
   const data = await Client.findOne({
     where: {
       userId: req.params.id,
@@ -163,30 +166,35 @@ exports.updateClient = catchAsync(async (req, res) => {
   });
 
   if (data) {
-    const { formatMessageId } = req.body;
+    if (adminID != data.adminId) {
+      res.status(403).json({
+        status: false,
+        message: 'Permission Denied!',
+      });
+    } else {
+      await data.update(
+        {
+          formatMessageId,
+        },
+        {
+          where: {
+            userId: req.params.id,
+          },
+        },
+      );
 
-    await data.update(
-      {
-        formatMessageId,
-      },
-      {
+      const updatedClient = await Client.findOne({
         where: {
           userId: req.params.id,
         },
-      },
-    );
+      });
 
-    const updatedClient = await Client.findOne({
-      where: {
-        userId: req.params.id,
-      },
-    });
-
-    res.status(200).json({
-      status: true,
-      message: 'Success update client!',
-      updatedClient,
-    });
+      res.status(200).json({
+        status: true,
+        message: 'Success update client!',
+        updatedClient,
+      });
+    }
   } else {
     res.status(404).json({
       status: false,

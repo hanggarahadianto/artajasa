@@ -6,11 +6,11 @@ const {
 } = require('../app/controllers/clientController');
 var router = express.Router();
 
-const { auth } = require('../app/middlewares/restrict');
-const { isSuperAdmin } = require('../app/middlewares/rbac');
+const mid = require('../app/middlewares/restrict');
+const { isSuperAdmin, isAdmin } = require('../app/middlewares/rbac');
 
-router.post('/', auth, isSuperAdmin, addClient);
-router.get('/', auth, isSuperAdmin, getAllClients);
-router.put('/:id', updateClient);
+router.post('/', mid.auth, isSuperAdmin, addClient);
+router.get('/', mid.auth, isSuperAdmin, getAllClients);
+router.put('/:id', mid.auth, isAdmin, updateClient);
 
 module.exports = router;
