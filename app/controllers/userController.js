@@ -123,7 +123,7 @@ exports.getAllUsers = catchAsync(async (req, res) => {
 
   res.status(200).json({
     status: true,
-    message: 'Success Get Admin',
+    message: 'Success All Users',
     currentPage: page,
     totalItems: users.count,
     totalPages: Math.ceil(users.count / limit),
