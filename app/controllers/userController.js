@@ -85,13 +85,19 @@ exports.getAllUsers = catchAsync(async (req, res) => {
 
   const whereCondition = {};
   if (username) {
-    whereCondition['$User.username$'] = { [Op.like]: `%${username}%` };
+    whereCondition['$username$'] = { [Op.like]: `%${username}%` };
   }
 
-  whereCondition['$Role.id$'] = { [Op.not]: 1 };
-
-  const users = await UserRole.findAndCountAll({
-    include: [{ model: User }, { model: Role }],
+  const users = await User.findAndCountAll({
+    include: [
+      {
+        model: UserRole,
+        include: [{ model: Role }],
+        where: {
+          roleId: { [Op.ne]: 1 },
+        },
+      },
+    ],
     where: whereCondition,
     limit: parseInt(limit),
     offset: offset,
@@ -106,10 +112,10 @@ exports.getAllUsers = catchAsync(async (req, res) => {
 
   const data = users.rows.map((e) => {
     return {
-      id: e.User.id,
-      username: e.User.username,
-      status: e.User.status,
-      role: e.Role.roleName,
+      id: e.id,
+      username: e.username,
+      status: e.status,
+      role: e.UserRoles[0].Role.roleName,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
     };
@@ -129,15 +135,21 @@ exports.getAllAdmin = catchAsync(async (req, res) => {
   const { page = 1, limit = 10, username = '' } = req.query;
   const offset = (page - 1) * limit;
 
-  const whereCondition = {
-    '$Role.id$': 2,
-  };
+  const whereCondition = {};
   if (username) {
-    whereCondition['$User.username$'] = { [Op.like]: `%${username}%` };
+    whereCondition['$username$'] = { [Op.like]: `%${username}%` };
   }
 
-  const users = await UserRole.findAndCountAll({
-    include: [{ model: User }, { model: Role }],
+  const users = await User.findAndCountAll({
+    include: [
+      {
+        model: UserRole,
+        include: [{ model: Role }],
+        where: {
+          roleId: 2,
+        },
+      },
+    ],
     where: whereCondition,
     limit: parseInt(limit),
     offset: offset,
@@ -152,10 +164,10 @@ exports.getAllAdmin = catchAsync(async (req, res) => {
 
   const data = users.rows.map((e) => {
     return {
-      id: e.User.id,
-      username: e.User.username,
-      status: e.User.status,
-      role: e.Role.roleName,
+      id: e.id,
+      username: e.username,
+      status: e.status,
+      role: e.UserRoles[0].Role.roleName,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
     };
@@ -163,7 +175,7 @@ exports.getAllAdmin = catchAsync(async (req, res) => {
 
   res.status(200).json({
     status: true,
-    message: 'Success Get Users Admin',
+    message: 'Success Get Admin',
     currentPage: page,
     totalItems: users.count,
     totalPages: Math.ceil(users.count / limit),
