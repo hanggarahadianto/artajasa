@@ -75,12 +75,36 @@ exports.addUser = catchAsync(async (req, res) => {
 
       // Further logic for role 2
     } else if (roleId === 3) {
-      const { name, formatMessageId, adminId } = req.body;
-      if (!name || !formatMessageId || !adminId) {
-        return res.status(400).json({
+      const clientId = uuidv4();
+      const { formatMessageId, adminId } = req.body;
+      if (!formatMessageId) {
+        res.status(400).json({
           status: false,
-          message:
-            'Name, formatMessageId, and adminId are required for role 3.',
+          message: 'formatMessageId is required',
+        });
+      } else if (!adminId) {
+        res.status(400).json({
+          status: false,
+          message: 'adminId is required',
+        });
+      } else {
+        client = await Client.create({
+          id: clientId,
+          formatMessageId,
+          userId: user.id,
+        });
+
+        const clientHasAdmin = await ClientHasAdmin.create({
+          clientId: client.id,
+          adminId,
+        });
+
+        userRole = await UserRole.create({ userId: user.id, roleId });
+
+        res.status(201).json({
+          status: true,
+          message: 'User Berhasil Dibuat',
+          data: { user, userRole, client, clientHasAdmin },
         });
       }
 
@@ -197,57 +221,6 @@ exports.getAllAdmin = catchAsync(async (req, res) => {
     res.status(200).json({
       status: true,
       message: 'Success Get Admin',
-      data,
-    });
-  }
-});
-
-exports.getAllClients = catchAsync(async (req, res) => {
-  const users = await UserRole.findAll({
-    where: {
-      roleId: 3,
-    },
-    include: [
-      {
-        model: User,
-        include: [
-          {
-            model: Client,
-            as: 'client',
-            include: [
-              { model: FormatMessage },
-              { model: ClientHasAdmin, include: Admin },
-            ],
-          },
-        ],
-      },
-      {
-        model: Role,
-      },
-    ],
-  });
-
-  if (users.length <= 0) {
-    res.status(404).json({
-      status: false,
-      message: 'Users not found!',
-    });
-  } else {
-    const data = users.map((user) => {
-      return {
-        id: user.User.id,
-        username: user.User.username,
-        role: user.Role.roleName,
-        formatMessage: user.User.client[0].FormatMessage.messageType,
-        admin: user.User.client[0].ClientHasAdmins[0].Admin,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      };
-    });
-
-    res.status(200).json({
-      status: true,
-      message: 'All client users',
       data,
     });
   }
