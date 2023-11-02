@@ -45,12 +45,12 @@ exports.simulatorInquiryQrMpan = catchAsync(async (req, res) => {
 
   const nowdate = `${day}, ${date} ${month} ${year} ${hours}:${minutes}:${seconds} GMT`;
 
-  const requestBody = QRCRawData.replace(/\s+/g, '').toUpperCase(); // Mengambil QRCRawData langsung dari req.body dan memodifikasinya
-  const secretKey = process.env.secretKey;
-  const combinedString = `${requestBody}:${nowdate}`; // Menggunakan nowdate sebagai bagian dari kombinasi string
+  const requestBody = QRCRawData.replace(/\s+/g, '').toUpperCase();
+  const secretKey = 'testsecret';
+  const combinedString = `${requestBody}:${nowdate}`;
   const hmac = crypto.createHmac('sha512', secretKey);
   hmac.update(combinedString, 'utf-8');
-  const generatedHmac = hmac.digest('base64'); // Menyimpan hasil HMAC yang dihasilkan
+  const generatedHmac = hmac.digest('base64');
 
   const config = {
     headers: {
