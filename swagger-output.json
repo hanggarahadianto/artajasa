@@ -5,8 +5,8 @@
     "description": "Test Tools WEB-UI API Documentation",
     "version": "1.0.0"
   },
-  "host": "localhost:8070",
-  "basePath": "/",
+  "host": ["localhost:8070", "localhost:6000"],
+  
   "schemes": [
     "http"
   ],

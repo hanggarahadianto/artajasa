@@ -6,7 +6,8 @@ const doc = {
     title: 'Test Tools WEB-UI API',
     description: 'Test Tools WEB-UI API Documentation',
   },
-  host: `localhost:${process.env.PORT}`,
+  //host: `localhost:${process.env.PORT}`,
+  host: '',
 };
 
 const outputFile = './swagger-output.json';

@@ -1,6 +1,7 @@
 const Joi = require('joi');
 const qrcode = require('qrcode');
 const catchAsync = require('../util/catchAsync');
+const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const fs = require('fs').promises;
 const {
@@ -49,30 +50,16 @@ exports.generateQRInquiryMpanAcquirer = async (req, res) => {
     const qrData = id === '1' ? data.QRCRawData1 : data.QRCRawData2;
     const qrImage = await qrcode.toDataURL(qrData);
 
-    const timestamp = new Date().getTime();
-    const fileName = `qrcode_${timestamp}_${name}.png`;
-
-    const filePath = path.join(__dirname, '..', '..', 'public', 'qr', fileName);
-
-    await fs.writeFile(
-      filePath,
-      qrImage.replace(/^data:image\/png;base64,/, ''),
-      'base64',
-    );
-
-    const host = req.get('host');
-    const protocol = req.protocol;
-
     const dataQr = await QrCode.create({
-      id: `${name}${fileName}`,
+      id: uuidv4(),
       name,
       qrData: qrData,
-      src: `${protocol}://${host}/qr/${fileName}`,
+      src: qrImage.replace(/^data:image\/png;base64,/, ''),
     });
 
     res.status(201).json({
       status: true,
-      message: 'QR Generate succesfully',
+      message: 'QR Generate successfully',
       data: dataQr,
     });
   } catch (error) {

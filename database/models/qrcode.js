@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       name: DataTypes.STRING,
       qrData: DataTypes.STRING,
-      src: DataTypes.STRING,
+      src: DataTypes.TEXT,
     },
     {
       sequelize,
