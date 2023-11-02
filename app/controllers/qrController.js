@@ -66,6 +66,7 @@ exports.generateQRInquiryMpanAcquirer = async (req, res) => {
     const dataQr = await QrCode.create({
       id: `${name}${fileName}`,
       name,
+      qrData: qrData,
       src: `${protocol}://${host}/qr/${fileName}`,
     });
 

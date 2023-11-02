@@ -11,6 +11,9 @@ module.exports = {
       name: {
         type: Sequelize.STRING,
       },
+      qrData: {
+        type: Sequelize.STRING,
+      },
       src: {
         type: Sequelize.STRING,
       },

@@ -14,6 +14,7 @@ module.exports = (sequelize, DataTypes) => {
   QrCode.init(
     {
       name: DataTypes.STRING,
+      qrData: DataTypes.STRING,
       src: DataTypes.STRING,
     },
     {
