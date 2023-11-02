@@ -11,6 +11,7 @@ const { isSuperAdmin, isAdmin } = require('../app/middlewares/rbac');
 const {
   generateQRInquiryMpanAcquirer,
   getAllInquiryMpanQR,
+  deleteQRInquiryMpanAcquirer,
 } = require('../app/controllers/qrController');
 
 router.post(
@@ -19,5 +20,6 @@ router.post(
   generateQRInquiryMpanAcquirer,
 );
 router.get('/inquiry/mpan-acquirer', mid.auth, getAllInquiryMpanQR);
+router.delete('/delete/:id', mid.auth, deleteQRInquiryMpanAcquirer);
 
 module.exports = router;
