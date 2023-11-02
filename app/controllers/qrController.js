@@ -106,3 +106,33 @@ exports.deleteQRInquiryMpanAcquirer = catchAsync(async (req, res) => {
     });
   }
 });
+
+exports.updateQR = catchAsync(async (req, res) => {
+  const { src } = req.body;
+  const qr = await QrCode.findOne({
+    where: {
+      id: req.params.id,
+    },
+  });
+
+  if (!qr) {
+    res.status(404).json({
+      status: false,
+      message: "QR with id isn't found!",
+    });
+  } else {
+    await qr.update({ src });
+
+    const updatedData = await QrCode.findOne({
+      where: {
+        id: req.params.id,
+      },
+    });
+
+    res.status(201).json({
+      status: true,
+      message: 'Update QR success',
+      data: updatedData,
+    });
+  }
+});

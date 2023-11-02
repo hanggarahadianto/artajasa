@@ -12,6 +12,7 @@ const {
   generateQRInquiryMpanAcquirer,
   getAllInquiryMpanQR,
   deleteQRInquiryMpanAcquirer,
+  updateQR,
 } = require('../app/controllers/qrController');
 
 router.post(
@@ -21,5 +22,6 @@ router.post(
 );
 router.get('/inquiry/mpan-acquirer', mid.auth, getAllInquiryMpanQR);
 router.delete('/delete/:id', mid.auth, deleteQRInquiryMpanAcquirer);
+router.put('/update/:id', updateQR);
 
 module.exports = router;
