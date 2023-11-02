@@ -60,7 +60,11 @@ exports.simulatorInquiryQrMpan = catchAsync(async (req, res) => {
   };
 
   try {
-    const response = await axios.post(`${SVIP_URL}/inquiry`, data, config);
+    const response = await axios.post(
+      `http://10.14.136.31:27010/jsonAPI/v1/inquiry`,
+      data,
+      config,
+    );
     const responseData = response.data.QRInquiryQrisRS;
 
     if (responseData.responseCode !== '00') {
