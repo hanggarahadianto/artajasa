@@ -273,20 +273,6 @@ exports.terUser = terUser = catchAsync(async (req, res) => {
 exports.modifyUser = catchAsync(async (req, res) => {
   const { username, password } = req.body;
 
-  const superAdmin = await User.findOne({
-    where: {
-      id: req.user.id, 
-      roleId: 1, 
-    },
-  });
-
-  if (!superAdmin) {
-    return res.status(403).json({
-      status: false,
-      message: 'Permission Denied! Only super admins can modify users.',
-    });
-  }
-
   const user = await User.findOne({
     where: {
       id: req.params.user_id,
@@ -302,7 +288,8 @@ exports.modifyUser = catchAsync(async (req, res) => {
     if (!username && !password) {
       return res.status(400).json({
         status: false,
-        message: 'You must provide either a new username or password to update.',
+        message:
+          'You must provide either a new username or password to update.',
       });
     } else {
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -316,7 +303,7 @@ exports.modifyUser = catchAsync(async (req, res) => {
           where: {
             id: req.params.user_id,
           },
-        }
+        },
       );
 
       res.status(200).json({
@@ -326,23 +313,13 @@ exports.modifyUser = catchAsync(async (req, res) => {
     }
   }
 });
-
 exports.selfModify = catchAsync(async (req, res) => {
-  const userId = req.user.id; // Get the user's ID from the authenticated user
-
-  const user = await User.findOne({
-    where: {
-      id: userId,
-      roleId: {
-        [Op.in]: [2, 3],
-      },
-    },
-  });
+  const user = req.user.id;
 
   if (!user) {
     return res.status(401).json({
       status: false,
-      message: 'User not found or unauthorized to modify data',
+      message: 'Pengguna tidak ditemukan',
     });
   }
 
@@ -350,79 +327,20 @@ exports.selfModify = catchAsync(async (req, res) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  await User.update(
+  const updatedData = await User.update(
     {
       password: hashedPassword,
     },
     {
       where: {
-        id: userId,
+        id: req.user.id,
       },
-    }
+    },
   );
 
   res.status(200).json({
     status: true,
-    message: 'User data modified successfully',
+    message: 'Data pengguna berhasil dimodifikasi',
+    data: updatedData,
   });
 });
-
-exports.deleteUser = catchAsync(async (req, res) => {
-  const user = await User.findOne({
-    where: {
-      id: req.params.id,
-    },
-  });
-
-  if (!user) {
-    res.status(400).json({
-      status: false,
-      message: 'User not found!',
-    });
-  } else {
-    const data = await User.destroy({
-      where: {
-        id: req.params.id,
-      },
-    });
-
-    res.status(200).json({
-      status: true,
-      message: 'User berhasil dihapus',
-      data: data,
-    });
-  }
-});
-exports.whoami = catchAsync(async (req, res) => {
-  const user = req.user;
-  return res.status(200).json({
-    status: true,
-    message: 'succes',
-    data: user,
-  });
-});
-
-exports.logout = (req, res) => {
-  const token = req.header('Authorization');
-
-  if (!token) {
-    return res.status(401).json({
-      status: false,
-      message: 'Unauthorized: No token provided',
-    });
-  }
-
-  jwt.verify(token, JWT_SECRET_KEY, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({
-        status: false,
-        message: 'Unauthorized: Invalid token',
-      });
-    }
-
-    res.status(200).json({
-      status: true,
-      message: 'Logout successful',
-    });
-  });
-};
