@@ -1,38 +1,61 @@
 const catchAsync = require('../util/catchAsync');
 const axios = require('axios');
 const net = require('net');
-
-const { QrCode } = require('../../database/models');
+const crypto = require('crypto');
 
 const { SVIP_URL } = process.env;
 
-exports.addInquiry = catchAsync(async (req, res) => {
-  const {
-    TimeStamp,
-    sequenceNumber,
-    forwardingID,
-    issuerID,
-    functionMode,
-    QRCRawData,
-    date,
-    signature,
-  } = req.body;
+exports.simulatorInquiryQrMpan = catchAsync(async (req, res) => {
+  const { QRCRawData } = req.body;
 
   const data = {
     QRInquiryRQ: {
-      TimeStamp,
-      sequenceNumber,
-      forwardingID,
-      issuerID,
-      functionMode,
+      TimeStamp: '20200120102247',
+      sequenceNumber: '200120102247',
+      forwardingID: '360001',
+      issuerID: '93600911',
+      functionMode: 'IQ02',
       QRCRawData,
     },
   };
 
+  const now = new Date();
+  const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][
+    now.getUTCDay()
+  ];
+  const date = now.getUTCDate();
+  const month = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ][now.getUTCMonth()];
+  const year = now.getUTCFullYear();
+  const hours = now.getUTCHours().toString().padStart(2, '0');
+  const minutes = now.getUTCMinutes().toString().padStart(2, '0');
+  const seconds = now.getUTCSeconds().toString().padStart(2, '0');
+
+  const nowdate = `${day}, ${date} ${month} ${year} ${hours}:${minutes}:${seconds} GMT`;
+
+  const requestBody = QRCRawData.replace(/\s+/g, '').toUpperCase(); // Mengambil QRCRawData langsung dari req.body dan memodifikasinya
+  const secretKey = process.env.secretKey;
+  const combinedString = `${requestBody}:${nowdate}`; // Menggunakan nowdate sebagai bagian dari kombinasi string
+  const hmac = crypto.createHmac('sha512', secretKey);
+  hmac.update(combinedString, 'utf-8');
+  const generatedHmac = hmac.digest('base64'); // Menyimpan hasil HMAC yang dihasilkan
+
   const config = {
     headers: {
-      Date: date,
-      Signature: signature,
+      Date: nowdate,
+      Signature: generatedHmac,
     },
   };
 
@@ -40,7 +63,7 @@ exports.addInquiry = catchAsync(async (req, res) => {
     const response = await axios.post(`${SVIP_URL}/inquiry`, data, config);
     const responseData = response.data.QRInquiryQrisRS;
 
-    if (responseData.responseCode != '00') {
+    if (responseData.responseCode !== '00') {
       res
         .status(400)
         .json({ status: false, message: 'Error', response: response.data });

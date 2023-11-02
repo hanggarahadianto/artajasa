@@ -387,7 +387,7 @@
         }
       }
     },
-    "/api/inquiry/": {
+    "/api/inquiry/simulator/mpan": {
       "post": {
         "description": "",
         "parameters": [
@@ -397,28 +397,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "TimeStamp": {
-                  "example": "any"
-                },
-                "sequenceNumber": {
-                  "example": "any"
-                },
-                "forwardingID": {
-                  "example": "any"
-                },
-                "issuerID": {
-                  "example": "any"
-                },
-                "functionMode": {
-                  "example": "any"
-                },
                 "QRCRawData": {
-                  "example": "any"
-                },
-                "date": {
-                  "example": "any"
-                },
-                "signature": {
                   "example": "any"
                 }
               }
@@ -614,6 +593,38 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/qr/delete/{id}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
           },
           "400": {
             "description": "Bad Request"
