@@ -1,8 +1,5 @@
 const catchAsync = require('../util/catchAsync');
 const axios = require('axios');
-const path = require('path');
-
-const fs = require('fs').promises;
 const net = require('net');
 
 const { QrCode } = require('../../database/models');
