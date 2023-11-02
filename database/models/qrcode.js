@@ -1,7 +1,5 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class QrCode extends Model {
     /**
@@ -13,12 +11,15 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  QrCode.init({
-    clientId: DataTypes.STRING,
-    src: DataTypes.STRING
-  }, {
-    sequelize,
-    modelName: 'QrCode',
-  });
+  QrCode.init(
+    {
+      name: DataTypes.STRING,
+      src: DataTypes.STRING,
+    },
+    {
+      sequelize,
+      modelName: 'QrCode',
+    },
+  );
   return QrCode;
 };

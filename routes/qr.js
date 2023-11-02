@@ -8,9 +8,16 @@ var router = express.Router();
 
 const mid = require('../app/middlewares/restrict');
 const { isSuperAdmin, isAdmin } = require('../app/middlewares/rbac');
+const {
+  generateQRInquiryMpanAcquirer,
+  getAllInquiryMpanQR,
+} = require('../app/controllers/qrController');
 
-router.post('/', mid.auth, isSuperAdmin, addClient);
-router.get('/', mid.auth, isSuperAdmin, getAllClients);
-router.put('/:id', mid.auth, isAdmin, updateClient);
+router.post(
+  '/inquiry/mpan-acquirer/:id',
+  mid.auth,
+  generateQRInquiryMpanAcquirer,
+);
+router.get('/inquiry/mpan-acquirer', mid.auth, getAllInquiryMpanQR);
 
 module.exports = router;

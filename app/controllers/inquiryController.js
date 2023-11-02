@@ -1,7 +1,7 @@
 const catchAsync = require('../util/catchAsync');
 const axios = require('axios');
 const path = require('path');
-const qrcode = require('qrcode');
+
 const fs = require('fs').promises;
 const net = require('net');
 
@@ -47,9 +47,9 @@ exports.addInquiry = catchAsync(async (req, res) => {
       res
         .status(400)
         .json({ status: false, message: 'Error', response: response.data });
+    } else {
+      res.json({ status: true, response: response.data });
     }
-
-    res.json({ status: true, response: response.data });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
@@ -114,49 +114,4 @@ exports.addInquiryIso = async (req, res) => {
 
   // Kirim respons API dengan respon simulasi
   // res.status(200).json({ response: simulatedResponse, iso: isoMessage });
-};
-
-exports.generateQR = async (req, res) => {
-  const { id } = req.params;
-  const clientId = req.user.id;
-
-  const data = {
-    QRCRawData1:
-      '00020101021151450015ID.OR.GPNQR.WWW0215ID10190000000990303UME520458125303360540810000.005502015802ID5921BAKSO MALANG MAS NANO6013JAKARTA PUSAT61051034062140710A000000001630439ED',
-    QRCRawData2:
-      '00020101021151450015ID.OR.GPNQR.WWW0215ID10190000000990303UME520458125303360540810000.005502015802ID5921BAKSO MALANG MAS NANO6013JAKARTA PUSAT61051034062140710A000000001630439ED',
-  };
-
-  try {
-    const qrData = id === '1' ? data.QRCRawData1 : data.QRCRawData2;
-    const qrImage = await qrcode.toDataURL(qrData);
-
-    const timestamp = new Date().getTime();
-    const fileName = `qrcode_${timestamp}_${clientId}.png`;
-
-    const filePath = path.join(__dirname, '..', '..', 'public', 'qr', fileName);
-
-    await fs.writeFile(
-      filePath,
-      qrImage.replace(/^data:image\/png;base64,/, ''),
-      'base64',
-    );
-
-    const host = req.get('host');
-    const protocol = req.protocol;
-
-    const dataQr = await QrCode.create({
-      clientId,
-      src: `${protocol}://${host}/qr/${fileName}`,
-    });
-
-    res.status(201).json({
-      status: true,
-      message: 'QR Generate succesfully',
-      data: dataQr,
-    });
-  } catch (error) {
-    console.error('Error generating QR Code:', error);
-    res.status(400).json({ error: 'Failed to generate QR Code' });
-  }
 };
