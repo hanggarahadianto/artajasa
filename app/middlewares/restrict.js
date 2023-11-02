@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
-
 const { JWT_SECRET_KEY } = process.env;
+const { Token } = require('../../database/models');
 
 module.exports = {
-  auth: (req, res, next) => {
+  auth: async (req, res, next) => {
     try {
       const authorizationHeader = req.headers['authorization'];
       if (!authorizationHeader || !authorizationHeader.startsWith('Bearer ')) {
@@ -12,21 +12,33 @@ module.exports = {
           message: 'You are not authorized!',
           data: null,
         });
-      } else {
-        const token = authorizationHeader.split(' ')[1];
-        if (!token) {
-          return res.status(401).json({
-            status: false,
-            message: 'You are not authorize!',
-            data: null,
-          });
-        }
-
-        const decode = jwt.verify(token, JWT_SECRET_KEY);
-        req.user = decode;
-
-        next();
       }
+
+      const token = authorizationHeader.split(' ')[1];
+      if (!token) {
+        return res.status(401).json({
+          status: false,
+          message: 'You are not authorized!',
+          data: null,
+        });
+      }
+
+      const decodedToken = jwt.verify(token, JWT_SECRET_KEY);
+
+      const foundToken = await Token.findOne({
+        where: { token: token, revoked: true },
+      });
+
+      if (foundToken) {
+        return res.status(401).json({
+          status: false,
+          message: 'Token expired. Please log in again.',
+          data: null,
+        });
+      }
+
+      req.user = decodedToken;
+      next();
     } catch (err) {
       if (err.message == 'jwt malformed') {
         return res.status(401).json({

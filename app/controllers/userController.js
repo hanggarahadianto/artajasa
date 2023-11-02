@@ -41,6 +41,8 @@ const userSchema = Joi.object({
   name: Joi.string().required(),
 });
 
+const { JWT_SECRET_KEY } = process.env;
+
 exports.addUser = catchAsync(async (req, res) => {
   try {
     await userSchema.validateAsync(req.body, { abortEarly: false });
@@ -403,27 +405,27 @@ exports.whoami = catchAsync(async (req, res) => {
   });
 });
 
-exports.logout = (req, res) => {
-  const token = req.header('Authorization');
+// exports.logout = (req, res) => {
+//   const token = req.header('Authorization');
 
-  if (!token) {
-    return res.status(401).json({
-      status: false,
-      message: 'Unauthorized: No token provided',
-    });
-  }
+//   if (!token) {
+//     return res.status(401).json({
+//       status: false,
+//       message: 'Unauthorized: No token provided',
+//     });
+//   }
 
-  jwt.verify(token, JWT_SECRET_KEY, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({
-        status: false,
-        message: 'Unauthorized: Invalid token',
-      });
-    }
+//   jwt.verify(token, JWT_SECRET_KEY, (err, decoded) => {
+//     if (err) {
+//       return res.status(401).json({
+//         status: false,
+//         message: 'Unauthorized: Invalid token',
+//       });
+//     }
 
-    res.status(200).json({
-      status: true,
-      message: 'Logout successful',
-    });
-  });
-};
+//     res.status(200).json({
+//       status: true,
+//       message: 'Logout successful',
+//     });
+//   });
+// };

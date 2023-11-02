@@ -20,11 +20,11 @@ const { isAdmin, isSuperAdmin } = require('../app/middlewares/rbac');
 //all user
 router.get('/whoami', mid.auth, whoami);
 // router.put('/self-modify', mid.auth, selfModify);
-router.post('/logout', mid.auth, logout);
+// router.post('/logout', mid.auth, logout);
 
 //admin only
 router.post('/admin', mid.auth, isSuperAdmin, addUser);
-// router.put('/:id', mid.auth, isAdmin, terUser);
+router.put('/:id', mid.auth, isAdmin, terUser);
 router.get('/get-all-users', mid.auth, isSuperAdmin, getAllUsers);
 router.get('/get-all-admin', mid.auth, isSuperAdmin, getAllAdmin);
 router.get('/get-all-client-by-admin', mid.auth, isAdmin, getAllClientByAdmin);
