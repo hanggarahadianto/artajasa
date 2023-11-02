@@ -99,11 +99,16 @@ exports.addClient = catchAsync(async (req, res) => {
       userId: user.id,
     });
 
+    const result = await User.findOne({
+      where: {
+        id: user.id,
+      },
+    });
+
     res.status(200).json({
       status: true,
-      data: user,
-      userRole,
-      client,
+      message: 'Client has been successfully created',
+      data: result,
     });
   }
 });
