@@ -1,5 +1,5 @@
-const catchAsync = require("../util/catchAsync");
-const axios = require("axios");
+const catchAsync = require('../util/catchAsync');
+const axios = require('axios');
 
 const { SVIP_URL } = process.env;
 

@@ -7,6 +7,7 @@ const {
   FormatMessage,
   Admin,
   Client,
+  QrCode,
 } = require('../../database/models');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
@@ -207,6 +208,49 @@ exports.updateClient = catchAsync(async (req, res) => {
     res.status(404).json({
       status: false,
       message: 'Client not found!',
+    });
+  }
+});
+
+exports.getAllQR = catchAsync(async (req, res) => {
+  const data = await QrCode.findAll();
+
+  if (data.length <= 0) {
+    res.status(404).json({
+      status: false,
+      message: 'QR not found!',
+    });
+  } else {
+    res.status(200).json({
+      status: true,
+      message: 'Success get all QR',
+      data: data,
+    });
+  }
+});
+
+exports.deleteQR = catchAsync(async (req, res) => {
+  const qr = await QrCode.findOne({
+    where: {
+      id: req.params.id,
+    },
+  });
+
+  if (!qr) {
+    res.status(404).json({
+      status: false,
+      message: "QR with id isn't found!",
+    });
+  } else {
+    await QrCode.destroy({
+      where: {
+        id: req.params.id,
+      },
+    });
+
+    res.status(201).json({
+      status: true,
+      message: 'Delete success',
     });
   }
 });

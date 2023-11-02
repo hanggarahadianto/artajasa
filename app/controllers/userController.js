@@ -141,6 +141,9 @@ exports.getAllAdmin = catchAsync(async (req, res) => {
   }
 
   const users = await User.findAndCountAll({
+    where: {
+      status: 'active',
+    },
     include: [
       {
         model: UserRole,

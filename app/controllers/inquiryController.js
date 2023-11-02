@@ -5,6 +5,8 @@ const qrcode = require('qrcode');
 const fs = require('fs').promises;
 const net = require('net');
 
+const { QrCode } = require('../../database/models');
+
 const { SVIP_URL } = process.env;
 
 exports.addInquiry = catchAsync(async (req, res) => {
@@ -143,13 +145,16 @@ exports.generateQR = async (req, res) => {
     const host = req.get('host');
     const protocol = req.protocol;
 
+    const dataQr = await QrCode.create({
+      clientId,
+      src: `${protocol}://${host}/qr/${fileName}`,
+    });
+
     res.status(201).json({
       status: true,
       message: 'QR Generate succesfully',
-      qr: `${protocol}://${host}/qr/${fileName}`,
+      data: dataQr,
     });
-
-    res.sendFile(filePath);
   } catch (error) {
     console.error('Error generating QR Code:', error);
     res.status(400).json({ error: 'Failed to generate QR Code' });
