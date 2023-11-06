@@ -1,6 +1,6 @@
 const Joi = require('joi');
 const catchAsync = require('../util/catchAsync');
-const { User, UserRole, Role, Token } = require('../../database/models');
+const { User, UserRole, Role } = require('../../database/models');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
@@ -53,17 +53,22 @@ exports.loginUser = catchAsync(async (req, res) => {
           expiresIn: '2d',
         });
 
-        const tokenData = await Token.create({
-          user_id: user.id,
-          token: token,
-          expires_at: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-        });
+        const tokenData = await User.update(
+          {
+            token: token,
+          },
+          {
+            where: {
+              id: user.id,
+            },
+          },
+        );
 
         res.status(201).json({
           status: true,
           message: 'Login success',
           data: {
-            token: tokenData.token,
+            token: token,
             payload,
           },
         });
@@ -83,16 +88,19 @@ exports.logout = catchAsync(async (req, res) => {
     });
   }
 
-  const foundToken = await Token.findOne({ where: { token: token } });
-  if (!foundToken || foundToken.revoked) {
+  const foundToken = await User.findOne({ where: { token: token } });
+  if (!foundToken) {
     return res.status(400).json({
       status: false,
-      message: 'Token not found or already revoked',
+      message: 'Token not found',
     });
   }
 
-  const revokedToken = await Token.update(
-    { revoked: true },
+  const revokedToken = await User.update(
+    {
+      token: null,
+    },
+
     {
       where: {
         token: token,

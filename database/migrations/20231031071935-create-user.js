@@ -16,6 +16,9 @@ module.exports = {
       status: {
         type: Sequelize.ENUM(['active', 'deactive']),
       },
+      token: {
+        type: Sequelize.TEXT,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

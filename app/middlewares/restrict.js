@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET_KEY } = process.env;
-const { Token } = require('../../database/models');
+const { User } = require('../../database/models');
 
 module.exports = {
   auth: async (req, res, next) => {
@@ -25,11 +25,11 @@ module.exports = {
 
       const decodedToken = jwt.verify(token, JWT_SECRET_KEY);
 
-      const foundToken = await Token.findOne({
-        where: { token: token, revoked: true },
+      const foundToken = await User.findOne({
+        where: { token: token },
       });
 
-      if (foundToken) {
+      if (!foundToken) {
         return res.status(401).json({
           status: false,
           message: 'Token expired. Please log in again.',

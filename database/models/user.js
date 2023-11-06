@@ -11,7 +11,6 @@ module.exports = (sequelize, DataTypes) => {
       this.hasMany(models.UserRole, { foreignKey: 'userId' });
       this.hasMany(models.Admin, { foreignKey: 'userId', as: 'admin' });
       this.hasMany(models.Client, { foreignKey: 'userId', as: 'client' });
-
     }
   }
   User.init(
@@ -22,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM(['active', 'deactive']),
         defaultValue: 'active',
       },
+      token: DataTypes.TEXT,
     },
     {
       sequelize,
