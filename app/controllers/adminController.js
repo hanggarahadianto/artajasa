@@ -9,74 +9,25 @@ const {
   Client,
   AdminClient,
 } = require('../../database/models');
-const { v4: uuidv4 } = require('uuid');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-const { use } = require('../../routes/payment');
-
-const checkUsernameExist = async (v) => {
-  const data = await User.findOne({
-    where: {
-      username: v,
-    },
-  });
-
-  if (data) {
-    throw new Error('Username already exists');
-  }
-};
-
-const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$/;
-
-const adminSchema = Joi.object({
-  username: Joi.string()
-    .min(3)
-    .max(255)
-    .required()
-    .external(checkUsernameExist),
-  password: Joi.string().min(6).pattern(passwordPattern).required().messages({
-    'string.pattern.base':
-      'Password must be a combination of uppercase and lowercase letters, and numbers.',
-  }),
-  status: Joi.string().valid('active', 'deactive').default('active'),
-  name: Joi.string().min(3).max(255).required(),
-});
+const { createAdmin } = require('../services/adminService');
 
 exports.addAdmin = catchAsync(async (req, res) => {
-  try {
-    await adminSchema.validateAsync(req.body, { abortEarly: false });
+  const { username, password, name } = req.body;
 
-    const { username, password, name } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const userId = uuidv4();
+  const result = await createAdmin({
+    username,
+    password,
+    name,
+  });
 
-    const roleType = 2;
-
-    const user = await User.create({
-      id: userId,
-      username,
-      password: hashedPassword,
-      roleId: roleType,
-    });
-
-    const userRole = await UserRole.create({
-      userId: user.id,
-      roleId: roleType,
-    });
-
-    const admin = await Admin.create({
-      id: user.id,
-      userId: user.id,
-      name,
-    });
-
+  if (result.success) {
     res.status(201).json({
       status: true,
-      message: 'Create User Success',
-      data: { user, userRole, admin },
+      message: 'User client created',
+      newAdmin: result.newAdmin,
     });
-  } catch (error) {
-    res.status(400).json({ status: false, message: error.message });
+  } else {
+    res.status(400).json({ status: false, error: result.error });
   }
 });
 

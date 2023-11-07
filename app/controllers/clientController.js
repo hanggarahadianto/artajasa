@@ -13,6 +13,7 @@ const {
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const { createClient } = require('../services/clientService');
 
 const checkUsernameExist = async (v) => {
   const data = await User.findOne({
@@ -61,60 +62,26 @@ exports.GetAllFormatMessage = catchAsync(async (req, res) => {
 });
 
 exports.addClient = catchAsync(async (req, res) => {
-  try {
-    const { username, password, adminIds } = req.body;
-    const userId = uuidv4();
+  const { username, password, adminIds, institutionCode, formatMessageId } =
+    req.body;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+  const result = await createClient({
+    username,
+    password,
+    adminIds,
+    institutionCode,
+    formatMessageId,
+  });
 
-    const roleType = 3;
-
-    const newUser = await User.create({
-      id: userId,
-      username,
-      password: hashedPassword,
-    });
-
-    await UserRole.create({
-      userId: userId,
-      roleId: roleType,
-    });
-
-    const newClient = await Client.create({
-      id: userId,
-      userId: newUser.id,
-    });
-
-    const createdAdminClients = [];
-
-    const validAdminIds = [];
-    const admins = await Admin.findAll();
-
-    for (const admin of admins) {
-      validAdminIds.push(admin.userId);
-    }
-
-    for (const adminId of adminIds) {
-      if (validAdminIds.includes(adminId)) {
-        const createdAdminClient = await AdminClient.create({
-          clientId: newClient.id,
-          adminId: adminId,
-        });
-
-        createdAdminClients.push(createdAdminClient);
-      } else {
-        res.status(400).json({ error: `Admin not found` });
-        return;
-      }
-    }
-
+  if (result.success) {
     res.status(201).json({
-      message: 'User client created ',
-      newClient,
-      createdAdminClients,
+      status: true,
+      message: 'User client created',
+      newClient: result.newClient,
+      createdAdminClients: result.createdAdminClients,
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } else {
+    res.status(400).json({ status: false, error: result.error });
   }
 });
 

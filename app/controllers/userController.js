@@ -1,74 +1,34 @@
-const UseRole = require('../../database/models/userrole');
-
-const Joi = require('joi');
-const {
-  User,
-  UserRole,
-  Admin,
-  Client,
-  FormatMessage,
-  Role,
-} = require('../../database/models');
+const { User, UserRole, Admin, Role } = require('../../database/models');
 const catchAsync = require('../util/catchAsync');
 const bcrypt = require('bcrypt');
-const { v4: uuidv4 } = require('uuid');
-const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
-
-const checkUsernameExist = async (v) => {
-  const data = await User.findOne({
-    where: {
-      username: v,
-    },
-  });
-
-  if (data) {
-    throw new Error('Username already exists');
-  }
-};
-
-const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$/;
-
-const userSchema = Joi.object({
-  username: Joi.string()
-    .min(3)
-    .max(255)
-    .required()
-    .external(checkUsernameExist),
-  password: Joi.string().min(6).pattern(passwordPattern).required().messages({
-    'string.pattern.base':
-      'Password must be a combination of uppercase and lowercase letters, and numbers.',
-  }),
-  status: Joi.string().valid('active', 'deactive').default('active'),
-});
-
-const { JWT_SECRET_KEY } = process.env;
+const { createUserWithRole } = require('../services/userService');
+const { userSchema } = require('../util/validator');
 
 exports.addSuperAdmin = catchAsync(async (req, res) => {
-  await userSchema.validateAsync(req.body, { abortEarly: false });
-
   const { username, password } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const userId = uuidv4();
 
   const roleType = 1;
 
-  const user = await User.create({
-    id: userId,
+  await userSchema.validateAsync(
+    { username, password, roleType },
+    { abortEarly: false },
+  );
+  const result = await createUserWithRole({
     username,
-    password: hashedPassword,
+    password,
+    roleType,
   });
 
-  const userRole = await UserRole.create({
-    userId: user.id,
-    roleId: roleType,
-  });
-
-  res.status(201).json({
-    status: true,
-    message: 'Super Admin created',
-    data: { user, userRole },
-  });
+  if (result.success) {
+    res.status(201).json({
+      status: true,
+      message: 'User client created',
+      data: result,
+    });
+  } else {
+    res.status(400).json({ status: false, error: result.error });
+  }
 });
 
 exports.getAllSuperAdmin = catchAsync(async (req, res) => {
@@ -218,7 +178,7 @@ exports.getAllAdmin = catchAsync(async (req, res) => {
       username: e.username,
       status: e.status,
       role: e.UserRoles[0].Role.roleName,
-      admin: e.Admin.name,
+      //admin: e.Admin.name,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
     };
