@@ -4,6 +4,8 @@ services:
     image: artajasa-be
     build: .
     container_name: artajasa-be
+    env_file:
+      - ./.env
     restart: always
     ports:
       - "3001:3000"
