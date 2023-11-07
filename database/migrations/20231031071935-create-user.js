@@ -5,9 +5,7 @@ module.exports = {
     await queryInterface.createTable('Users', {
       id: {
         allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
       },
       username: {
         type: Sequelize.STRING,
@@ -15,11 +13,11 @@ module.exports = {
       password: {
         type: Sequelize.STRING,
       },
-      role: {
-        type: Sequelize.ENUM(['admin', 'client']),
-      },
       status: {
         type: Sequelize.ENUM(['active', 'deactive']),
+      },
+      token: {
+        type: Sequelize.TEXT,
       },
       createdAt: {
         allowNull: false,
