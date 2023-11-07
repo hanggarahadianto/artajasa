@@ -128,6 +128,15 @@ exports.getAllClientsByAdmin = catchAsync(async (req, res) => {
         {
           model: User,
         },
+        {
+          model: Admin,
+          attributes: ['name'],
+          through: {
+            model: AdminClient,
+            attributes: [],
+          },
+          where: { id: adminId },
+        },
       ],
     });
 
