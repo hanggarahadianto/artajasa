@@ -1,3 +1,5 @@
+const UseRole = require('../../database/models/userrole');
+
 const Joi = require('joi');
 const {
   User,
@@ -343,16 +345,21 @@ exports.deleteUser = catchAsync(async (req, res) => {
       message: 'User not found!',
     });
   } else {
+    const userRolesDeleted = await UserRole.destroy({
+      where: {
+        userId: user.id,
+      },
+    });
     const data = await User.destroy({
       where: {
         id: req.params.id,
       },
     });
-
     res.status(200).json({
       status: true,
       message: 'User berhasil dihapus',
       data: data,
+      userRolesDeleted: userRolesDeleted,
     });
   }
 });
