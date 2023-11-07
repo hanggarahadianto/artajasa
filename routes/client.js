@@ -3,6 +3,9 @@ const {
   addClient,
   getAllClients,
   updateClient,
+  selfModify,
+  modifyClient,
+  SelfmodifyClient,
 } = require('../app/controllers/clientController');
 var router = express.Router();
 

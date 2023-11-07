@@ -330,55 +330,6 @@ exports.modifyUser = catchAsync(async (req, res) => {
   }
 });
 
-exports.selfModify = catchAsync(async (req, res) => {
-  const userId = req.user.id; // Dapatkan ID pengguna dari pengguna yang terautentikasi
-
-  const { username, password } = req.body;
-
-  const user = await User.findOne({
-    where: {
-      id: userId,
-    },
-  });
-
-  if (!user) {
-    return res.status(404).json({
-      status: false,
-      message: 'User not found!',
-    });
-  } else {
-    if (!username && !password) {
-      return res.status(400).json({
-        status: false,
-        message:
-          'You must provide either a new username or password to update.',
-      });
-    } else {
-      const updateData = {};
-
-      if (username) {
-        updateData.username = username;
-      }
-
-      if (password) {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        updateData.password = hashedPassword;
-      }
-
-      await User.update(updateData, {
-        where: {
-          id: userId,
-        },
-      });
-
-      res.status(200).json({
-        status: true,
-        message: 'User data modified successfully',
-      });
-    }
-  }
-});
-
 exports.deleteUser = catchAsync(async (req, res) => {
   const user = await User.findOne({
     where: {
@@ -414,7 +365,7 @@ exports.whoami = catchAsync(async (req, res) => {
   });
 });
 
-exports.modifySuperAdmin = catchAsync(async (req, res) => {
+exports.SelfModify = catchAsync(async (req, res) => {
   const { oldPassword, newPassword, confirmPassword } = req.body;
 
   if (req.user.role !== 'SuperAdmin') {
