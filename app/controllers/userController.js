@@ -234,43 +234,6 @@ exports.getAllAdmin = catchAsync(async (req, res) => {
   });
 });
 
-exports.getAllClientByAdmin = catchAsync(async (req, res) => {
-  const client = await Client.findAll({
-    where: {
-      adminId: req.user.id,
-    },
-    include: [
-      {
-        model: User,
-      },
-      { model: FormatMessage },
-    ],
-  });
-
-  if (client.length <= 0) {
-    res.status(404).json({
-      status: false,
-      message: 'Client not found!',
-    });
-  } else {
-    const data = client.map((e) => {
-      return {
-        id: e.id,
-        userId: e.userId,
-        username: e.User.username,
-        formatMessage: e.FormatMessage.messageType,
-        createdAt: e.createdAt,
-        updatedAt: e.updatedAt,
-      };
-    });
-    res.status(200).json({
-      status: true,
-      message: 'Client Found!',
-      data: data,
-    });
-  }
-});
-
 exports.getAllClient = catchAsync(async (req, res) => {
   const { page = 1, limit = 10, username = '' } = req.query;
   const offset = (page - 1) * limit;

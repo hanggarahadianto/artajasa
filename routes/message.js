@@ -3,6 +3,6 @@ const { GetAllFormatMessage } = require('../app/controllers/clientController');
 
 var router = express.Router();
 
-router.get('/', GetAllFormatMessage);
+// router.get('/', GetAllFormatMessage);
 
 module.exports = router;

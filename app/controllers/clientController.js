@@ -1,4 +1,5 @@
 const Joi = require('joi');
+const Sequelize = require('sequelize');
 const catchAsync = require('../util/catchAsync');
 const {
   User,
@@ -121,15 +122,11 @@ exports.getAllClients = catchAsync(async (req, res) => {
   try {
     const clients = await Client.findAll({
       include: [
-        {
-          model: User,
-          attributes: ['id', 'username', 'status'],
-        },
+        { model: User },
         {
           model: Admin,
-          through: {
-            model: AdminClient,
-          },
+          attributes: ['name'],
+          through: { attributes: [] },
         },
       ],
     });
@@ -139,7 +136,7 @@ exports.getAllClients = catchAsync(async (req, res) => {
         id: e.id,
         username: e.User.username,
         status: e.User.status,
-        admin: e.Admin,
+        admin: e.Admins,
       };
     });
 

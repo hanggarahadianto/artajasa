@@ -15,13 +15,13 @@ const {
   updateQR,
 } = require('../app/controllers/qrController');
 
-router.post(
-  '/inquiry/mpan-acquirer/:id',
-  mid.auth,
-  generateQRInquiryMpanAcquirer,
-);
-router.get('/inquiry/mpan-acquirer', mid.auth, getAllInquiryMpanQR);
-router.delete('/delete/:id', mid.auth, deleteQRInquiryMpanAcquirer);
-router.put('/update/:id', updateQR);
+// router.post(
+//   '/inquiry/mpan-acquirer/:id',
+//   mid.auth,
+//   generateQRInquiryMpanAcquirer,
+// );
+// router.get('/inquiry/mpan-acquirer', mid.auth, getAllInquiryMpanQR);
+// router.delete('/delete/:id', mid.auth, deleteQRInquiryMpanAcquirer);
+// router.put('/update/:id', updateQR);
 
 module.exports = router;

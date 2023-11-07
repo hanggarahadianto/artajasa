@@ -7,11 +7,12 @@ const {
   FormatMessage,
   Admin,
   Client,
-  QrCode,
+  AdminClient,
 } = require('../../database/models');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const { use } = require('../../routes/payment');
 
 const checkUsernameExist = async (v) => {
   const data = await User.findOne({
@@ -64,7 +65,7 @@ exports.addAdmin = catchAsync(async (req, res) => {
     });
 
     const admin = await Admin.create({
-      id: uuidv4(),
+      id: user.id,
       userId: user.id,
       name,
     });
@@ -115,5 +116,34 @@ exports.deleteAdmin = catchAsync(async (req, res) => {
       message: 'User berhasil dihapus',
       data: data,
     });
+  }
+});
+
+exports.getAllClientsByAdmin = catchAsync(async (req, res) => {
+  try {
+    const adminId = req.user.id;
+
+    const clients = await Client.findAll({
+      include: [
+        {
+          model: User,
+        },
+      ],
+    });
+
+    const data = clients.map((e) => {
+      return {
+        id: e.id,
+        username: e.User.username,
+        status: e.User.status,
+      };
+    });
+
+    res.status(200).json({
+      message: `Get All Clients`,
+      data,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });

@@ -120,7 +120,6 @@ exports.addInquiryIso = async (req, res) => {
   const simulatedResponse = 'ISO_RESP=SUCCESS';
 
   try {
-    // Ubah sesuai kebutuhan Anda
     const URL = `http://10.14.136.31:26010/inquiry`;
     const response = await axios.post(URL, isoMessage);
 
