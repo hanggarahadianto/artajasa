@@ -12,14 +12,18 @@ const {
   getAllAdmin,
   getAllClientByAdmin,
   logout,
+  modifySuperAdmin,
 } = require('../app/controllers/userController');
 var router = express.Router();
 const mid = require('../app/middlewares/restrict');
 const { isAdmin, isSuperAdmin } = require('../app/middlewares/rbac');
 
+//Super Admin
+router.put('/super-admin', mid.auth, modifySuperAdmin);
+
 //all user
 router.get('/whoami', mid.auth, whoami);
-// router.put('/self-modify', mid.auth, selfModify);
+router.put('/self-modify', mid.auth, selfModify);
 // router.post('/logout', mid.auth, logout);
 
 //admin only
