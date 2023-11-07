@@ -24,14 +24,11 @@ router.get('/whoami', mid.auth, whoami);
 
 //admin only
 router.post('/admin', mid.auth, isSuperAdmin, addUser);
-<<<<<<< HEAD
 router.put('/admin', mid.auth, isAdmin, SelfModify);
 router.put('/:id', mid.auth, isAdmin, terUser);
 router.get('/get-all-users', mid.auth, isSuperAdmin, getAllUsers);
-=======
 router.put('/terminate/:id', mid.auth, isSuperAdmin, terUser);
 router.get('/admin', mid.auth, isSuperAdmin, getAllUsers);
->>>>>>> 923f943c6879096305329d6dac9f1ecedc80583a
 router.get('/get-all-admin', mid.auth, isSuperAdmin, getAllAdmin);
 router.get('/get-all-client-by-admin', mid.auth, isAdmin, getAllClientByAdmin);
 
