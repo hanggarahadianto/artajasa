@@ -415,7 +415,7 @@ exports.whoami = catchAsync(async (req, res) => {
 });
 
 exports.modifySuperAdmin = catchAsync(async (req, res) => {
-  const { username, password } = req.body;
+  const { oldPassword, newPassword, confirmPassword } = req.body;
 
   if (req.user.role !== 'SuperAdmin') {
     return res.status(403).json({
@@ -424,43 +424,48 @@ exports.modifySuperAdmin = catchAsync(async (req, res) => {
     });
   }
 
-  const targetUserId = req.user.id; 
-
   const targetUser = await User.findOne({
     where: {
-      id: targetUserId,
-      roleId: 1,
+      id: req.user.id, 
     },
   });
 
   if (!targetUser) {
     return res.status(404).json({
       status: false,
-      message: 'Target user not found or does not have the role "SuperAdmin".',
+      message: 'Your account is not found or is not a "SuperAdmin" role.',
     });
   }
 
-  if (!username && !password) {
+  const isOldPasswordCorrect = await bcrypt.compare(oldPassword, targetUser.password);
+
+  if (!isOldPasswordCorrect) {
     return res.status(400).json({
       status: false,
-      message: 'You must provide either a new username or password to update.',
+      message: 'Old password is incorrect',
     });
   }
 
-  const updateData = {};
-
-  if (username) {
-    updateData.username = username;
+  if (!newPassword || !confirmPassword || newPassword !== confirmPassword) {
+    return res.status(400).json({
+      status: false,
+      message: 'New password and confirm password must match and not be empty',
+    });
   }
 
-  if (password) {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    updateData.password = hashedPassword;
+  const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$/;
+  if (!passwordPattern.test(newPassword)) {
+    return res.status(400).json({
+      status: false,
+      message: 'Password must be a combination of uppercase and lowercase letters, and numbers with a minimum length of 6 characters.',
+    });
   }
 
-  await User.update(updateData, {
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await User.update({ password: hashedPassword }, {
     where: {
-      id: targetUserId,
+      id: req.user.id,
     },
   });
 
