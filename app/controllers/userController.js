@@ -227,6 +227,61 @@ exports.getAllClientByAdmin = catchAsync(async (req, res) => {
   }
 });
 
+exports.getAllClient = catchAsync(async (req, res)=> {
+  const { page = 1, limit = 10, username = '' } = req.query;
+  const offset = (page - 1) * limit;
+
+  const whereCondition = {};
+  if (username) {
+    whereCondition['$username$'] = { [Op.like]: `%${username}%` };
+  }
+
+  const users = await User.findAndCountAll({
+    where: {
+      status: 'active',
+    },
+    include: [
+      {
+        model: UserRole,
+        include: [{ model: Role }],
+        where: {
+          roleId: 3,
+        },
+      },
+    ],
+    where: whereCondition,
+    limit: parseInt(limit),
+    offset: offset,
+  });
+
+  if (users.rows.length <= 0) {
+    return res.status(404).json({
+      status: false,
+      message: 'Data not found!',
+    });
+  }
+
+  const data = users.rows.map((e) => {
+    return {
+      id: e.id,
+      username: e.username,
+      status: e.status,
+      role: e.UserRoles[0].Role.roleName,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+    };
+  });
+
+  res.status(200).json({
+    status: true,
+    message: 'Success Get All Client',
+    currentPage: page,
+    totalItems: users.count,
+    totalPages: Math.ceil(users.count / limit),
+    data,
+  });
+});
+
 exports.searchUser = catchAsync(async (req, res) => {
   const { page = 1, limit = 10, username = '' } = req.query;
   const offset = (page - 1) * limit;
@@ -363,6 +418,30 @@ exports.deleteUser = catchAsync(async (req, res) => {
     });
   }
 });
+
+exports.restoreUser = catchAsync(async (req, res)=>{
+  const user = await User.findOne({
+    where: {
+      id: req.params.id,
+      status: 'deactive',
+    },
+  });
+  if (!user) {
+    res.status(400).json({
+      status: false,
+      message: 'User not found! or already active',
+    });
+  } else {
+    user.status = 'active';
+    await user.save();
+    res.status(200).json({
+      status: true,
+      message: 'User restore successfully',
+      data: user,
+    });
+  }
+})
+
 exports.whoami = catchAsync(async (req, res) => {
   const user = req.user;
   return res.status(200).json({
