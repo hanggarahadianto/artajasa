@@ -123,21 +123,29 @@ exports.getAllClients = catchAsync(async (req, res) => {
       include: [
         {
           model: User,
-          attributes: ['id', 'username'],
+          attributes: ['id', 'username', 'status'],
         },
         {
           model: Admin,
-          attributes: ['userId'],
           through: {
-            attributes: [],
+            model: AdminClient,
           },
         },
       ],
     });
 
+    const data = clients.map((e) => {
+      return {
+        id: e.id,
+        username: e.User.username,
+        status: e.User.status,
+        admin: e.Admin,
+      };
+    });
+
     res.status(200).json({
       message: 'Retrieved all clients',
-      clients,
+      data,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
