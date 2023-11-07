@@ -7,7 +7,7 @@ const {
   FormatMessage,
   Admin,
   Client,
-  QrCode,
+  AdminClient,
 } = require('../../database/models');
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
@@ -60,112 +60,87 @@ exports.GetAllFormatMessage = catchAsync(async (req, res) => {
 });
 
 exports.addClient = catchAsync(async (req, res) => {
-  await addClientSchema.validateAsync(req.body, { abortEarly: false });
-
-  const { username, password, adminId } = req.body;
-
-  const adminExist = await Admin.findOne({
-    where: {
-      userId: adminId,
-    },
-  });
-
-  // const fmExist = await FormatMessage.findOne({
-  //   where: {
-  //     id: formatMessageId,
-  //   },
-  // });
-
-  if (!adminExist) {
-    res.status(404).json({
-      status: false,
-      message: "Admin with the adminId isn't found",
-    });
-  } else {
+  try {
+    const { username, password, adminIds } = req.body;
     const userId = uuidv4();
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({
+
+    const roleType = 3;
+
+    const newUser = await User.create({
       id: userId,
       username,
       password: hashedPassword,
     });
-    const userRole = await UserRole.create({
-      userId: user.id,
-      roleId: 3,
-    });
-    const client = await Client.create({
-      id: uuidv4(),
-      adminId: adminExist.userId,
-      userId: user.id,
+
+    await UserRole.create({
+      userId: userId,
+      roleId: roleType,
     });
 
-    const result = await User.findOne({
-      where: {
-        id: user.id,
-      },
+    const newClient = await Client.create({
+      id: userId,
+      userId: newUser.id,
     });
 
-    res.status(200).json({
-      status: true,
-      message: 'Client has been successfully created',
-      data: result,
+    const createdAdminClients = [];
+
+    const validAdminIds = [];
+    const admins = await Admin.findAll();
+
+    for (const admin of admins) {
+      validAdminIds.push(admin.userId);
+    }
+
+    for (const adminId of adminIds) {
+      if (validAdminIds.includes(adminId)) {
+        const createdAdminClient = await AdminClient.create({
+          clientId: newClient.id,
+          adminId: adminId,
+        });
+
+        createdAdminClients.push(createdAdminClient);
+      } else {
+        res.status(400).json({ error: `Admin not found` });
+        return;
+      }
+    }
+
+    res.status(201).json({
+      message: 'User client created ',
+      newClient,
+      createdAdminClients,
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
 exports.getAllClients = catchAsync(async (req, res) => {
-  const users = await UserRole.findAll({
-    where: {
-      roleId: 3,
-    },
-    include: [
-      {
-        model: User,
-        include: [
-          {
-            model: Client,
-            as: 'client',
-            include: [
-              {
-                model: FormatMessage,
-                attributes: {
-                  exclude: ['id', 'createdAt', 'updatedAt'],
-                },
-              },
-              { model: Admin },
-            ],
+  try {
+    const clients = await Client.findAll({
+      include: [
+        {
+          model: User,
+          attributes: ['id', 'username'],
+        },
+        {
+          model: Admin,
+          attributes: ['userId'],
+          through: {
+            attributes: [],
           },
-        ],
-      },
-      {
-        model: Role,
-      },
-    ],
-  });
-
-  if (users.length <= 0) {
-    res.status(404).json({
-      status: false,
-      message: 'Users not found!',
-    });
-  } else {
-    const data = users.map((user) => {
-      return {
-        id: user.User.id,
-        username: user.User.username,
-        role: user.Role.roleName,
-        formatMessage: user.User.client[0].FormatMessage,
-        adminId: user.User.client[0].adminId,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      };
+        },
+      ],
     });
 
     res.status(200).json({
-      status: true,
-      message: 'All client users',
-      data,
+      message: 'Retrieved all clients',
+      clients,
     });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -215,4 +190,10 @@ exports.updateClient = catchAsync(async (req, res) => {
       message: 'Client not found!',
     });
   }
+});
+
+exports.getAllRelation = catchAsync(async (req, res) => {
+  const data = await AdminClient.findAll({});
+
+  res.json({ data });
 });

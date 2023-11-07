@@ -38,47 +38,87 @@ const userSchema = Joi.object({
       'Password must be a combination of uppercase and lowercase letters, and numbers.',
   }),
   status: Joi.string().valid('active', 'deactive').default('active'),
-  name: Joi.string().required(),
 });
 
 const { JWT_SECRET_KEY } = process.env;
 
-exports.addUser = catchAsync(async (req, res) => {
-  try {
-    await userSchema.validateAsync(req.body, { abortEarly: false });
+exports.addSuperAdmin = catchAsync(async (req, res) => {
+  await userSchema.validateAsync(req.body, { abortEarly: false });
 
-    const { username, password, name } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const userId = uuidv4();
+  const { username, password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const userId = uuidv4();
 
-    const roleType = 2;
+  const roleType = 1;
 
-    const user = await User.create({
-      id: userId,
-      username,
-      password: hashedPassword,
-      roleId: roleType,
-    });
+  const user = await User.create({
+    id: userId,
+    username,
+    password: hashedPassword,
+  });
 
-    const userRole = await UserRole.create({
-      userId: user.id,
-      roleId: roleType,
-    });
+  const userRole = await UserRole.create({
+    userId: user.id,
+    roleId: roleType,
+  });
 
-    const admin = await Admin.create({
-      id: uuidv4(),
-      userId: user.id,
-      name,
-    });
+  res.status(201).json({
+    status: true,
+    message: 'Super Admin created',
+    data: { user, userRole },
+  });
+});
 
-    res.status(201).json({
-      status: true,
-      message: 'Create User Success',
-      data: { user, userRole, admin },
-    });
-  } catch (error) {
-    res.status(400).json({ status: false, message: error.message });
+exports.getAllSuperAdmin = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10, username = '' } = req.query;
+  const offset = (page - 1) * limit;
+
+  const whereCondition = {};
+  if (username) {
+    whereCondition['$username$'] = { [Op.like]: `%${username}%` };
   }
+
+  const users = await User.findAndCountAll({
+    include: [
+      {
+        model: UserRole,
+        include: [{ model: Role }],
+        where: {
+          roleId: 1,
+        },
+      },
+    ],
+    where: whereCondition,
+    limit: parseInt(limit),
+    offset: offset,
+  });
+
+  if (users.rows.length <= 0) {
+    return res.status(404).json({
+      status: false,
+      message: 'Data not found!',
+    });
+  }
+
+  const data = users.rows.map((e) => {
+    return {
+      id: e.id,
+      username: e.username,
+      status: e.status,
+      role: e.UserRoles[0].Role.roleName,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+    };
+  });
+
+  res.status(200).json({
+    status: true,
+    message: 'Success All Users',
+    currentPage: page,
+    totalItems: users.count,
+    totalPages: Math.ceil(users.count / limit),
+    data,
+  });
 });
 
 exports.getAllUsers = catchAsync(async (req, res) => {
@@ -154,6 +194,9 @@ exports.getAllAdmin = catchAsync(async (req, res) => {
           roleId: 2,
         },
       },
+      {
+        model: Admin,
+      },
     ],
     where: whereCondition,
     limit: parseInt(limit),
@@ -173,6 +216,7 @@ exports.getAllAdmin = catchAsync(async (req, res) => {
       username: e.username,
       status: e.status,
       role: e.UserRoles[0].Role.roleName,
+      admin: e.Admin.name,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
     };
@@ -370,7 +414,7 @@ exports.selfModify = catchAsync(async (req, res) => {
   });
 });
 
-exports.deleteUser = catchAsync(async (req, res) => {
+exports.deleteSuperAdmin = catchAsync(async (req, res) => {
   const user = await User.findOne({
     where: {
       id: req.params.id,
@@ -386,6 +430,12 @@ exports.deleteUser = catchAsync(async (req, res) => {
     const data = await User.destroy({
       where: {
         id: req.params.id,
+      },
+    });
+
+    await UserRole.destroy({
+      where: {
+        userId: req.params.id,
       },
     });
 

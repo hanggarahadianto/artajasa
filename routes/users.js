@@ -1,6 +1,5 @@
 var express = require('express');
 const {
-  addUser,
   login,
   terUser,
   getAllUsers,
@@ -8,24 +7,36 @@ const {
   modifyUser,
   whoami,
   selfModify,
-  deleteUser,
   getAllAdmin,
   getAllClientByAdmin,
   logout,
+  addSuperAdmin,
+  getAllSuperAdmin,
+  deleteSuperAdmin,
 } = require('../app/controllers/userController');
 var router = express.Router();
 const mid = require('../app/middlewares/restrict');
 const { isAdmin, isSuperAdmin } = require('../app/middlewares/rbac');
+const { addAdmin, deleteAdmin } = require('../app/controllers/adminController');
+
+//superAdmin
+router.get('/', mid.auth, isSuperAdmin, getAllUsers);
+router.post('/super-admin', mid.auth, isSuperAdmin, addSuperAdmin);
+router.get('/super-admin', mid.auth, isSuperAdmin, getAllSuperAdmin);
+router.delete('/super-admin/:id', mid.auth, isSuperAdmin, deleteSuperAdmin);
 
 //all user
 router.get('/whoami', mid.auth, whoami);
 // router.put('/self-modify', mid.auth, selfModify);
 // router.post('/logout', mid.auth, logout);
 
-//admin only
-router.post('/admin', mid.auth, isSuperAdmin, addUser);
+//admin
+router.post('/admin', mid.auth, isSuperAdmin, addAdmin);
+router.delete('/admin/:id', mid.auth, isSuperAdmin, deleteAdmin);
+
+//client
 router.put('/:id', mid.auth, isAdmin, terUser);
-router.get('/get-all-users', mid.auth, isSuperAdmin, getAllUsers);
+
 router.get('/get-all-admin', mid.auth, isSuperAdmin, getAllAdmin);
 router.get('/get-all-client-by-admin', mid.auth, isAdmin, getAllClientByAdmin);
 // router.delete('/:id', mid.auth, isAdmin, deleteUser);
