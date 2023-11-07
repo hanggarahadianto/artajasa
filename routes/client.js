@@ -3,7 +3,9 @@ const {
   addClient,
   getAllClients,
   updateClient,
-  getAllRelation,
+  selfModify,
+  modifyClient,
+  SelfmodifyClient,
 } = require('../app/controllers/clientController');
 var router = express.Router();
 
@@ -14,6 +16,5 @@ const { route } = require('./users');
 router.post('/', mid.auth, isSuperAdmin, addClient);
 router.get('/', mid.auth, isSuperAdmin, getAllClients);
 router.put('/:id', mid.auth, isAdmin, updateClient);
-router.get('/cek', getAllRelation);
 
 module.exports = router;

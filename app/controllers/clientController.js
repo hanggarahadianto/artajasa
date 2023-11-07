@@ -199,9 +199,3 @@ exports.updateClient = catchAsync(async (req, res) => {
     });
   }
 });
-
-exports.getAllRelation = catchAsync(async (req, res) => {
-  const data = await AdminClient.findAll({});
-
-  res.json({ data });
-});

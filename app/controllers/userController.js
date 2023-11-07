@@ -1,3 +1,5 @@
+const UseRole = require('../../database/models/userrole');
+
 const Joi = require('joi');
 const {
   User,
@@ -269,6 +271,61 @@ exports.getAllClientByAdmin = catchAsync(async (req, res) => {
   }
 });
 
+exports.getAllClient = catchAsync(async (req, res) => {
+  const { page = 1, limit = 10, username = '' } = req.query;
+  const offset = (page - 1) * limit;
+
+  const whereCondition = {};
+  if (username) {
+    whereCondition['$username$'] = { [Op.like]: `%${username}%` };
+  }
+
+  const users = await User.findAndCountAll({
+    where: {
+      status: 'active',
+    },
+    include: [
+      {
+        model: UserRole,
+        include: [{ model: Role }],
+        where: {
+          roleId: 3,
+        },
+      },
+    ],
+    where: whereCondition,
+    limit: parseInt(limit),
+    offset: offset,
+  });
+
+  if (users.rows.length <= 0) {
+    return res.status(404).json({
+      status: false,
+      message: 'Data not found!',
+    });
+  }
+
+  const data = users.rows.map((e) => {
+    return {
+      id: e.id,
+      username: e.username,
+      status: e.status,
+      role: e.UserRoles[0].Role.roleName,
+      createdAt: e.createdAt,
+      updatedAt: e.updatedAt,
+    };
+  });
+
+  res.status(200).json({
+    status: true,
+    message: 'Success Get All Client',
+    currentPage: page,
+    totalItems: users.count,
+    totalPages: Math.ceil(users.count / limit),
+    data,
+  });
+});
+
 exports.searchUser = catchAsync(async (req, res) => {
   const { page = 1, limit = 10, username = '' } = req.query;
   const offset = (page - 1) * limit;
@@ -374,46 +431,6 @@ exports.modifyUser = catchAsync(async (req, res) => {
   }
 });
 
-exports.selfModify = catchAsync(async (req, res) => {
-  const userId = req.user.id; // Get the user's ID from the authenticated user
-
-  const user = await User.findOne({
-    where: {
-      id: userId,
-      roleId: {
-        [Op.in]: [2, 3],
-      },
-    },
-  });
-
-  if (!user) {
-    return res.status(401).json({
-      status: false,
-      message: 'User not found or unauthorized to modify data',
-    });
-  }
-
-  const { password } = req.body;
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  await User.update(
-    {
-      password: hashedPassword,
-    },
-    {
-      where: {
-        id: userId,
-      },
-    },
-  );
-
-  res.status(200).json({
-    status: true,
-    message: 'User data modified successfully',
-  });
-});
-
 exports.deleteSuperAdmin = catchAsync(async (req, res) => {
   const user = await User.findOne({
     where: {
@@ -427,15 +444,14 @@ exports.deleteSuperAdmin = catchAsync(async (req, res) => {
       message: 'User not found!',
     });
   } else {
+    const userRolesDeleted = await UserRole.destroy({
+      where: {
+        userId: user.id,
+      },
+    });
     const data = await User.destroy({
       where: {
         id: req.params.id,
-      },
-    });
-
-    await UserRole.destroy({
-      where: {
-        userId: req.params.id,
       },
     });
 
@@ -443,9 +459,34 @@ exports.deleteSuperAdmin = catchAsync(async (req, res) => {
       status: true,
       message: 'User berhasil dihapus',
       data: data,
+      userRolesDeleted: userRolesDeleted,
     });
   }
 });
+
+exports.restoreUser = catchAsync(async (req, res) => {
+  const user = await User.findOne({
+    where: {
+      id: req.params.id,
+      status: 'deactive',
+    },
+  });
+  if (!user) {
+    res.status(400).json({
+      status: false,
+      message: 'User not found! or already active',
+    });
+  } else {
+    user.status = 'active';
+    await user.save();
+    res.status(200).json({
+      status: true,
+      message: 'User restore successfully',
+      data: user,
+    });
+  }
+});
+
 exports.whoami = catchAsync(async (req, res) => {
   const user = req.user;
   return res.status(200).json({
@@ -455,27 +496,70 @@ exports.whoami = catchAsync(async (req, res) => {
   });
 });
 
-// exports.logout = (req, res) => {
-//   const token = req.header('Authorization');
+exports.SelfModify = catchAsync(async (req, res) => {
+  const { oldPassword, newPassword, confirmPassword } = req.body;
 
-//   if (!token) {
-//     return res.status(401).json({
-//       status: false,
-//       message: 'Unauthorized: No token provided',
-//     });
-//   }
+  if (req.user.role !== 'SuperAdmin') {
+    return res.status(403).json({
+      status: false,
+      message: 'Permission Denied! Only super admins can perform this action.',
+    });
+  }
 
-//   jwt.verify(token, JWT_SECRET_KEY, (err, decoded) => {
-//     if (err) {
-//       return res.status(401).json({
-//         status: false,
-//         message: 'Unauthorized: Invalid token',
-//       });
-//     }
+  const targetUser = await User.findOne({
+    where: {
+      id: req.user.id,
+    },
+  });
 
-//     res.status(200).json({
-//       status: true,
-//       message: 'Logout successful',
-//     });
-//   });
-// };
+  if (!targetUser) {
+    return res.status(404).json({
+      status: false,
+      message: 'Your account is not found or is not a "SuperAdmin" role.',
+    });
+  }
+
+  const isOldPasswordCorrect = await bcrypt.compare(
+    oldPassword,
+    targetUser.password,
+  );
+
+  if (!isOldPasswordCorrect) {
+    return res.status(400).json({
+      status: false,
+      message: 'Old password is incorrect',
+    });
+  }
+
+  if (!newPassword || !confirmPassword || newPassword !== confirmPassword) {
+    return res.status(400).json({
+      status: false,
+      message: 'New password and confirm password must match and not be empty',
+    });
+  }
+
+  const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$/;
+  if (!passwordPattern.test(newPassword)) {
+    return res.status(400).json({
+      status: false,
+      message:
+        'Password must be a combination of uppercase and lowercase letters, and numbers with a minimum length of 6 characters.',
+    });
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await User.update(
+    { password: hashedPassword },
+    {
+      where: {
+        id: req.user.id,
+      },
+    },
+  );
+
+  res.status(200).json({
+    status: true,
+    message: 'User data modified successfully',
+  });
+});
