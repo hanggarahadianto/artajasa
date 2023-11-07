@@ -11,7 +11,6 @@ function generateHMAC(data, date, secretKey) {
   return hmac.digest('base64');
 }
 
-// Fungsi untuk menentukan tanggal dalam format tertentu
 function getFormattedDate() {
   const now = new Date();
   const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][
@@ -40,73 +39,111 @@ function getFormattedDate() {
   return `${day}, ${date} ${month} ${year} ${hours}:${minutes}:${seconds} GMT`;
 }
 
-function parseQRString(qrString) {
-  const parsedData = {
-    msgType: '0200',
-    trxPAN: qrString.slice(38, 53),
-    trxCode: qrString.slice(56, 62),
-    trxAmount: qrString.slice(65, 70),
-    transmissionDateTime: qrString.slice(),
-    msgSTAN: qrString.slice(60, 66),
-    trxTime: qrString.slice(66, 72),
-    trxDate: qrString.slice(72, 76),
-    settlementDate: qrString.slice(76, 80),
-    captureDate: qrString.slice(80, 84),
-    merchantType: qrString.slice(84, 88),
-    posEntryMode: qrString.slice(88, 91),
-    trxFeeAmount: qrString.slice(91, 100),
-    acquirerID: qrString.slice(100, 108),
-    forwardingID: qrString.slice(108, 114),
-    retrievalReferenceNumber: qrString.slice(114, 128),
-    approvalCode: qrString.slice(128, 134),
-    terminalID: qrString.slice(134, 150),
-    merchantID: qrString.slice(150, 164),
-    merchantNameLocation: qrString.slice(164, 279).trim(),
-    additionalDataPrivate: qrString.slice(279, 309),
-    trxCurrencyCode: qrString.slice(309, 312),
-    additionalDataNational: qrString.slice(312, 332),
-    issuerID: qrString.slice(332, 340),
-    fromAccount: qrString.slice(340, 364),
-  };
+function parseTLV(sTlvData) {
+  const mResult = {};
+  let iOffset = 0;
+
+  while (iOffset < sTlvData.length) {
+    const tag = sTlvData.substring(iOffset, iOffset + 2);
+    iOffset += 2;
+
+    const lengthStr = sTlvData.substring(iOffset, iOffset + 2);
+    const length = parseInt(lengthStr, 10);
+    iOffset += 2;
+
+    const value = sTlvData.substring(iOffset, iOffset + length);
+    iOffset += length;
+
+    mResult[tag] = { length: lengthStr, value: value };
+  }
+
+  return mResult;
+}
+
+function processTags(result, start, end) {
+  let parsedData = [];
+
+  for (let i = start; i <= end; i++) {
+    const tag = result[i.toString()];
+    if (tag) {
+      const parsedValue = parseTLV(tag.value);
+      const extractedData = {};
+      Object.keys(parsedValue).forEach((key) => {
+        extractedData[key] = parsedValue[key]?.value ?? null;
+      });
+      parsedData.push(extractedData);
+    }
+  }
+
+  if (parsedData.length === 0) {
+    parsedData = null;
+  }
 
   return parsedData;
 }
 
-exports.addPayment = catchAsync(async (req, res) => {
-  const { qrString } = req.body;
+function processTag(result, selectedTag) {
+  const tag = result[selectedTag];
 
-  try {
-    const msgType = qrString.substring(0, 4);
-    const trxPAN = qrString.substring(8, 28);
-    const trxCode = qrString.substring(28, 34);
-
-    const parsedData = parseQRString(qrString);
-
-    const data = {
-      QRPaymentCreditRQ: {
-        msgType,
-        trxPAN,
-        trxCode,
-      },
-    };
-
-    const nowdate = getFormattedDate();
-    const requestBody = qrString.replace(/\s+/g, '').toUpperCase();
-    const secretKey = 'testsecret';
-    const generatedHmac = generateHMAC(requestBody, nowdate, secretKey);
-
-    const config = {
-      headers: {
-        Date: nowdate,
-        Signature: generatedHmac,
-      },
-    };
-
-    //const response = await axios.post(`${SVIP_URL}/paycredit`, data, config);
-
-    res.json({ status: true, message: parsedData });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+  if (!tag || !tag.value) {
+    return null;
   }
+
+  console.log(tag.value);
+
+  const parsedValue = parseTLV(tag.value);
+  const extractedData = {};
+  Object.keys(parsedValue).forEach((key) => {
+    extractedData[key] = parsedValue[key]?.value ?? null;
+  });
+
+  return extractedData;
+}
+
+function getTagValues(result, startTag, endTag) {
+  const tagValues = {};
+
+  for (let i = startTag; i <= endTag; i++) {
+    const tagName = i.toString().padStart(2, '0');
+
+    tagValues[`i${tagName}`] = result[tagName]?.value ?? null;
+  }
+
+  return tagValues;
+}
+
+exports.addPaymentQrisIssuer = catchAsync(async (req, res) => {
+  const { sTlvData } = req.body;
+  const result = parseTLV(sTlvData);
+  let i51 = processTag(result, '51');
+  let i62 = processTag(result, '62');
+
+  let i64 = processTag(result, '64');
+  let i0245 = processTags(result, 2, 45);
+  let i4650 = processTags(result, 46, 50);
+  let i5261 = getTagValues(result, 52, 61);
+
+  const requestData = {
+    issuerID: '93600147',
+    fromAccount: '9360014700100102129',
+    destinationMsgType: 'json',
+    QRCParsedData: {
+      i00: result['00']?.value ?? null,
+      i01: result['01']?.value ?? null,
+      i0245,
+      i4650,
+      i51,
+      ...i5261,
+      i62,
+      i63: result['63']?.value ?? null,
+      i64,
+    },
+  };
+
+  res.status(200).json({
+    status: 'okey',
+    response: {
+      requestData,
+    },
+  });
 });
