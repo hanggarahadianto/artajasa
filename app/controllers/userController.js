@@ -414,27 +414,58 @@ exports.whoami = catchAsync(async (req, res) => {
   });
 });
 
-// exports.logout = (req, res) => {
-//   const token = req.header('Authorization');
+exports.modifySuperAdmin = catchAsync(async (req, res) => {
+  const { username, password } = req.body;
 
-//   if (!token) {
-//     return res.status(401).json({
-//       status: false,
-//       message: 'Unauthorized: No token provided',
-//     });
-//   }
+  if (req.user.role !== 'SuperAdmin') {
+    return res.status(403).json({
+      status: false,
+      message: 'Permission Denied! Only super admins can perform this action.',
+    });
+  }
 
-//   jwt.verify(token, JWT_SECRET_KEY, (err, decoded) => {
-//     if (err) {
-//       return res.status(401).json({
-//         status: false,
-//         message: 'Unauthorized: Invalid token',
-//       });
-//     }
+  const targetUserId = req.user.id; 
 
-//     res.status(200).json({
-//       status: true,
-//       message: 'Logout successful',
-//     });
-//   });
-// };
+  const targetUser = await User.findOne({
+    where: {
+      id: targetUserId,
+      roleId: 1,
+    },
+  });
+
+  if (!targetUser) {
+    return res.status(404).json({
+      status: false,
+      message: 'Target user not found or does not have the role "SuperAdmin".',
+    });
+  }
+
+  if (!username && !password) {
+    return res.status(400).json({
+      status: false,
+      message: 'You must provide either a new username or password to update.',
+    });
+  }
+
+  const updateData = {};
+
+  if (username) {
+    updateData.username = username;
+  }
+
+  if (password) {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    updateData.password = hashedPassword;
+  }
+
+  await User.update(updateData, {
+    where: {
+      id: targetUserId,
+    },
+  });
+
+  res.status(200).json({
+    status: true,
+    message: 'User data modified successfully',
+  });
+});
