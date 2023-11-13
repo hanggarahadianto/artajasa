@@ -31,8 +31,10 @@ router.post('/super-admin', mid.auth, isSuperAdmin, addSuperAdmin);
 router.put('/super-admin', mid.auth, isSuperAdmin, SelfModify);
 router.delete('/super-admin/:id', mid.auth, isSuperAdmin, deleteSuperAdmin);
 
+router.post('/admin', addAdmin);
+
 router.post('/admin', mid.auth, isSuperAdmin, addAdmin);
-router.get('/admin', mid.auth, isSuperAdmin, getAllAdmin);
+router.get('/admin', mid.auth, getAllAdmin);
 router.put('/admin', mid.auth, isAdmin, SelfModify);
 router.delete('/admin/:id', mid.auth, isSuperAdmin, deleteAdmin);
 

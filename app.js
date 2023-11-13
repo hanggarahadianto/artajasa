@@ -16,6 +16,8 @@ var paymentRouter = require('./routes/payment');
 var messageRouter = require('./routes/message');
 var clientRouter = require('./routes/client');
 var qrRouter = require('./routes/qr');
+var qrTestRouter = require('./routes/qrTest')
+var reportTransactionRouter = require('./routes/reportTransaction')
 
 var app = express();
 app.use(logger('dev'));
@@ -35,5 +37,7 @@ app.use('/api/inquiry', inquiryRouter);
 app.use('/api/paycredit', paymentRouter);
 app.use('/api/message', messageRouter);
 app.use('/api/qr', qrRouter);
+app.use('/api/qrtest', qrTestRouter);
+app.use('/api/reporttransaction', reportTransactionRouter)
 
 module.exports = app;
