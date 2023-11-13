@@ -1,13 +1,15 @@
-var express = require('express');
+var express = require("express");
 
+const mid = require("../app/middlewares/restrict");
 
-const mid = require('../app/middlewares/restrict');
-
-const { getReportTransaction } = require('../app/controllers/reportTransaction');
+const {
+  getReportTransaction,
+  getReportDetail,
+} = require("../app/controllers/reportTransaction");
 
 var router = express.Router();
 
-
-router.get('/getreporttransaction', getReportTransaction)
+router.get("/getreporttransaction", getReportTransaction);
+router.get("/getreportdetail", getReportDetail);
 
 module.exports = router;

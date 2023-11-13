@@ -9,22 +9,22 @@ require("dotenv").config();
 // } = process.env;
 
 module.exports = {
-  // development: {
-  //   username: "devartajasa",
-  //   password: "Artajasa@2",
-  //   database: "tsg_artajasa_testool",
-  //   host: "188.166.239.112",
-  //   port: 5435,
-  //   dialect: 'postgres',
-  // },
   development: {
-    username: "postgres",
-    password: "12345678",
-    database: "artajasaTSG",
-    host: "localhost",
-    port: 5432,
+    username: "devartajasa",
+    password: "Artajasa@2",
+    database: "tsg_artajasa_testool",
+    host: "188.166.239.112",
+    port: 5435,
     dialect: "postgres",
   },
+  // development: {
+  //   username: "postgres",
+  //   password: "12345678",
+  //   database: "artajasaTSG",
+  //   host: "localhost",
+  //   port: 5432,
+  //   dialect: "postgres",
+  // },
   // development: {
   //   username: DB_USER,
   //   password: DB_PASSWORD,

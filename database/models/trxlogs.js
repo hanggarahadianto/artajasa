@@ -1,7 +1,5 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+"use strict";
+const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class TrxLogs extends Model {
     /**
@@ -13,28 +11,32 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  TrxLogs.init({
-    issuerId: DataTypes.STRING,
-    cpan: DataTypes.STRING,
-    acquirerId: DataTypes.STRING,
-    mpan: DataTypes.STRING,
-    transactionCode: DataTypes.STRING,
-    processCode: DataTypes.STRING,
-    tansactionAmount: DataTypes.STRING,
-    tipAmount: DataTypes.STRING,
-    referenceNumber: DataTypes.STRING,
-    invoiceNumber: DataTypes.STRING,
-    testCaseCode: DataTypes.STRING,
-    testToolType: DataTypes.STRING,
-    responseCode: DataTypes.STRING,
-    responseMessage: DataTypes.STRING,
-    messageType: DataTypes.STRING,
-    messageCode: DataTypes.STRING,
-    rawBody: DataTypes.STRING,
-    operationalId: DataTypes.STRING
-  }, {
-    sequelize,
-    modelName: 'TrxLogs',
-  });
+  TrxLogs.init(
+    {
+      issuerId: DataTypes.STRING,
+      cpan: DataTypes.STRING,
+      acquirerId: DataTypes.STRING,
+      mpan: DataTypes.STRING,
+      transactionCode: DataTypes.STRING,
+      processCode: DataTypes.STRING,
+      transactionAmount: DataTypes.STRING,
+      tipAmount: DataTypes.STRING,
+      referenceNumber: DataTypes.STRING,
+      invoiceNumber: DataTypes.STRING,
+      testCaseCode: DataTypes.STRING,
+      testToolType: DataTypes.STRING,
+      responseCode: DataTypes.STRING,
+      responseMessage: DataTypes.STRING,
+      messageType: DataTypes.STRING,
+      messageCode: DataTypes.STRING,
+      rawBody: DataTypes.STRING,
+      createdBy: DataTypes.STRING,
+      operationalId: DataTypes.STRING,
+    },
+    {
+      sequelize,
+      modelName: "TrxLogs",
+    }
+  );
   return TrxLogs;
 };
