@@ -1,15 +1,10 @@
-const {
-  User,
-  UserRole,
-  Role,
-  FormatMessage,
-  Admin,
-  Client,
-  AdminClient,
-  qrTest,
-  TrxLogs,
-} = require("../../database/models");
+const { TrxLogs } = require("../../database/models");
 const catchAsync = require("../util/catchAsync");
+
+const path = require("path");
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
+const pdf = require("html-pdf");
 
 exports.getReportTransaction = catchAsync(async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
@@ -124,5 +119,104 @@ exports.getReportDetail = catchAsync(async (req, res) => {
       message: "Get Report Transaction Data Success",
       data: dataReport,
     });
+  }
+});
+
+// exports.downloadReport = catchAsync(async (req, res) => {
+//   try {
+//     const dataReport = await TrxLogs.findAll({
+//       attributes: ["cpan", "mpan"],
+//     });
+//     const templatePath = path.join(__dirname, "view", "report.html");
+//     const htmlTemplate = await fs.readFile(templatePath, "utf-8");
+
+//     const renderedHtml = renderHtml(htmlTemplate, { dataReport });
+
+//     const pdfOptions = { format: "Letter" };
+
+//     pdf.create(renderedHtml, pdfOptions).toBuffer((err, buffer) => {
+//       if (err) {
+//         console.error("Error generating PDF:", err.message);
+//         res.status(500).json({ error: "Internal Server Error" });
+//       } else {
+//         res.setHeader("Content-Type", "application/pdf");
+//         res.setHeader(
+//           "Content-Disposition",
+//           'attachment; filename="report-transaction.pdf"'
+//         );
+//         res.end(buffer);
+//       }
+//     });
+//   } catch (error) {
+//     console.error("Error generating PDF:", error.message);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
+
+exports.downloadReport = catchAsync(async (req, res) => {
+  try {
+    const dataReport = await TrxLogs.findAll({
+      attributes: ["issuerId", "cpan", "mpan"],
+    });
+
+    const pdfOptions = { format: "Letter" };
+
+    const htmlContent = `
+      <html>
+        <head>
+          <style>
+            table {
+              border-collapse: collapse;
+              width: 100%;
+            }
+            th, td {
+              border: 1px solid black;
+              padding: 8px;
+              text-align: left;
+            }
+          </style>
+        </head>
+        <body>
+          <h2>Report Transaction</h2>
+          <table>
+            <tr>
+            <th>issuerId</th>
+              <th>CPAN</th>
+              <th>MPAN</th>
+              <th>Price</th>
+            </tr>
+            ${dataReport
+              .map(
+                (data) => `
+            <tr>
+              <td>${data.issuerId}</td>
+              <td>${data.cpan}</td>
+              <td>${data.mpan}</td>
+
+            </tr>
+          `
+              )
+              .join("")}
+        </table>
+      </body>
+    </html>
+  `;
+
+    pdf.create(htmlContent, pdfOptions).toBuffer((err, buffer) => {
+      if (err) {
+        console.error("Error generating PDF:", err.message);
+        res.status(500).json({ error: "Internal Server Error" });
+      } else {
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+          "Content-Disposition",
+          'attachment; filename="report-payment.pdf"'
+        );
+        res.end(buffer);
+      }
+    });
+  } catch (error) {
+    console.error("Error generating PDF:", error.message);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
