@@ -7,6 +7,8 @@ const fs = require("fs");
 const pdf = require("html-pdf");
 
 exports.getReportTransaction = catchAsync(async (req, res) => {
+  const { column, value } = req.query;
+
   const { page = 1, limit = 10 } = req.query;
   const offset = (page - 1) * limit;
 
@@ -22,9 +24,16 @@ exports.getReportTransaction = catchAsync(async (req, res) => {
       "transactionAmount",
       "tipAmount",
       "responseCode",
+      "testCaseCode",
+      "messageCode",
       "responseMessage",
       "operationalId",
     ],
+    where: {
+      [column]: value,
+    },
+    limit: parseInt(limit),
+    offset: offset,
   });
 
   const dataReport = TrxLogsData.map((data) => ({
@@ -38,6 +47,8 @@ exports.getReportTransaction = catchAsync(async (req, res) => {
     transactionAmount: data.transactionAmount,
     tipAmount: data.tipAmount,
     responseCode: data.responseCode,
+    testCaseCode: data.testCaseCode,
+    messageCode: data.messageCode,
     responseMessage: data.responseMessage.replace(/[\[\]\\"]/g, ""),
     operationalId: data.operationalId,
   }));
