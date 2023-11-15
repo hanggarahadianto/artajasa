@@ -89,6 +89,30 @@ exports.getReportDetail = catchAsync(async (req, res) => {
       "messageCode",
       "rawBody",
       "operationalId",
+      "logPosition",
+      "settlementAmount",
+      "accHolderAmount",
+      "transmissionDateTime",
+      "settlementConversionRate",
+      "accHolderConversionRate",
+      "msgSTAN",
+      "trxTime",
+      "trxDate",
+      "settlementDate",
+      "conversionDate",
+      "captureDate",
+      "merchantType",
+      "posEntryMode",
+      "forwardingId",
+      "approvalCode",
+      "terminalId",
+      "merchantId",
+      "merchantNameLocation",
+      "additionalDataPrivate",
+      "trxCurrencyCode",
+      "settlementCurrencyCode",
+      "accHolderCurrencyCode",
+      "additionalDataNational",
       "createdAt",
       "createdBy",
       "updatedAt",
@@ -114,6 +138,31 @@ exports.getReportDetail = catchAsync(async (req, res) => {
     messageCode: data.messageCode,
     rawBody: data.rawBody,
     operationalId: data.operationalId,
+    logPosition: data.logPosition,
+    settlementAmount: data.settlementAmount,
+    accHolderAmount: data.accHolderAmount,
+    transmissionDateTime: data.transmissionDateTime,
+    settlementConversionRate: data.settlementConversionRate,
+    accHolderConversionRate: data.accHolderConversionRate,
+    msgSTAN: data.msgSTAN,
+    trxTime: data.trxTime,
+    trxDate: data.trxDate,
+    settlementDate: data.settlementDate,
+    conversionDate: data.conversionDate,
+    captureDate: data.captureDate,
+    merchantType: data.merchantType,
+    posEntryMode: data.posEntryMode,
+    forwardingId: data.forwardingId,
+    approvalCode: data.approvalCode,
+    terminalId: data.terminalId,
+    merchantId: data.merchantId,
+    merchantNameLocation: data.merchantNameLocation,
+    additionalDataPrivate: data.additionalDataPrivate,
+    trxCurrencyCode: data.trxCurrencyCode,
+    settlementCurrencyCode: data.settlementCurrencyCode,
+    accHolderCurrencyCode: data.accHolderCurrencyCode,
+    additionalDataNational: data.additionalDataNational,
+
     createdAt: data.createdAt,
     createdBy: data.createdBy,
     updatedAt: data.updatedAt,
@@ -132,37 +181,6 @@ exports.getReportDetail = catchAsync(async (req, res) => {
     });
   }
 });
-
-// exports.downloadReport = catchAsync(async (req, res) => {
-//   try {
-//     const dataReport = await TrxLogs.findAll({
-//       attributes: ["cpan", "mpan"],
-//     });
-//     const templatePath = path.join(__dirname, "view", "report.html");
-//     const htmlTemplate = await fs.readFile(templatePath, "utf-8");
-
-//     const renderedHtml = renderHtml(htmlTemplate, { dataReport });
-
-//     const pdfOptions = { format: "Letter" };
-
-//     pdf.create(renderedHtml, pdfOptions).toBuffer((err, buffer) => {
-//       if (err) {
-//         console.error("Error generating PDF:", err.message);
-//         res.status(500).json({ error: "Internal Server Error" });
-//       } else {
-//         res.setHeader("Content-Type", "application/pdf");
-//         res.setHeader(
-//           "Content-Disposition",
-//           'attachment; filename="report-transaction.pdf"'
-//         );
-//         res.end(buffer);
-//       }
-//     });
-//   } catch (error) {
-//     console.error("Error generating PDF:", error.message);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// });
 
 exports.downloadReport = catchAsync(async (req, res) => {
   try {
