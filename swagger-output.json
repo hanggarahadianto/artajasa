@@ -8,7 +8,7 @@
   "host": "",
   "servers": [
     {
-      "url": "http://localhost:undefined",
+      "url": "http://localhost:8070",
       "description": "Local Server"
     }
   ],
