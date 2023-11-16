@@ -5,7 +5,13 @@
     "description": "Test Tools WEB-UI API Documentation",
     "version": "1.0.0"
   },
-  "host": "localhost:8070",
+  "host": "",
+  "servers": [
+    {
+      "url": "http://localhost:undefined",
+      "description": "Local Server"
+    }
+  ],
   "basePath": "/",
   "schemes": [
     "http"
@@ -381,9 +387,6 @@
           "401": {
             "description": "Unauthorized"
           },
-          "403": {
-            "description": "Forbidden"
-          },
           "404": {
             "description": "Not Found"
           }
@@ -561,6 +564,12 @@
                 },
                 "adminIds": {
                   "example": "any"
+                },
+                "institutionCode": {
+                  "example": "any"
+                },
+                "formatMessageId": {
+                  "example": "any"
                 }
               }
             }
@@ -578,9 +587,6 @@
           },
           "403": {
             "description": "Forbidden"
-          },
-          "500": {
-            "description": "Internal Server Error"
           }
         }
       },
@@ -717,6 +723,109 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/qrtest/qrtest": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "amount": {
+                  "example": "any"
+                },
+                "tipAmount": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/reporttransaction/getreporttransaction": {
+      "get": {
+        "description": "",
+        "produces": [
+          "application/pdf"
+        ],
+        "parameters": [
+          {
+            "name": "column",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "value",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/reporttransaction/getreportdetail": {
+      "get": {
+        "description": "",
+        "produces": [
+          "application/pdf"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/reporttransaction/downloadreport": {
+      "get": {
+        "description": "",
+        "produces": [
+          "application/pdf"
+        ],
+        "responses": {
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }

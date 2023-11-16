@@ -5,6 +5,7 @@ SVIP_URL = "http://10.14.136.31:27010/jsonAPI/v1"
 
 
 secretKey = "testsecret"
+PORT = 8070
 
 # JWT_SECRET_KEY = rahasiahehe
 

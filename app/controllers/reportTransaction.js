@@ -185,51 +185,302 @@ exports.getReportDetail = catchAsync(async (req, res) => {
 exports.downloadReport = catchAsync(async (req, res) => {
   try {
     const dataReport = await TrxLogs.findAll({
-      attributes: ["issuerId", "cpan", "mpan"],
+      attributes: [
+        "issuerId",
+        "cpan",
+        "acquirerId",
+        "mpan",
+        "transactionCode",
+        "processCode",
+        "referenceNumber",
+        "transactionAmount",
+        "tipAmount",
+        "referenceNumber",
+        "invoiceNumber",
+        "testCaseCode",
+        "testToolType",
+        "responseCode",
+        "responseMessage",
+        "messageType",
+        "messageCode",
+        "rawBody",
+        "operationalId",
+        "logPosition",
+        "settlementAmount",
+        "accHolderAmount",
+        "transmissionDateTime",
+        "settlementConversionRate",
+        "accHolderConversionRate",
+        "msgSTAN",
+        "trxTime",
+        "trxDate",
+        "settlementDate",
+        "conversionDate",
+        "captureDate",
+        "merchantType",
+        "posEntryMode",
+        "forwardingId",
+        "approvalCode",
+        "terminalId",
+        "merchantId",
+        "merchantNameLocation",
+        "additionalDataPrivate",
+        "trxCurrencyCode",
+        "settlementCurrencyCode",
+        "accHolderCurrencyCode",
+        "additionalDataNational",
+        "createdAt",
+        "createdBy",
+        "updatedAt",
+      ],
     });
 
     const pdfOptions = { format: "Letter" };
 
-    const htmlContent = `
-      <html>
-        <head>
-          <style>
-            table {
-              border-collapse: collapse;
-              width: 100%;
-            }
-            th, td {
-              border: 1px solid black;
-              padding: 8px;
-              text-align: left;
-            }
-          </style>
-        </head>
-        <body>
-          <h2>Report Transaction</h2>
-          <table>
-            <tr>
-            <th>issuerId</th>
-              <th>CPAN</th>
-              <th>MPAN</th>
-              <th>Price</th>
-            </tr>
-            ${dataReport
-              .map(
-                (data) => `
-            <tr>
-              <td>${data.issuerId}</td>
-              <td>${data.cpan}</td>
-              <td>${data.mpan}</td>
+    //   const htmlContent = `
+    //     <html>
+    //       <head>
+    //         <style>
+    //           table {
+    //             border-collapse: collapse;
+    //             width: 100%;
+    //           }
+    //           th, td {
+    //             border: 1px solid black;
+    //             padding: 8px;
+    //             text-align: left;
+    //           }
+    //         </style>
+    //       </head>
+    //       <body>
+    //         <h2>Hasil Test</h2>
+    //         <table>
+    //         <tr>
+    //             <th>Bit</th>
 
-            </tr>
-          `
-              )
-              .join("")}
-        </table>
-      </body>
-    </html>
-  `;
+    //             <th>Value</th>
+    //         </tr>
+    //           <tr>
+
+    //             <th>TrxPan</th>
+    //             <th>TrxCode</th>
+
+    //           </tr>
+    //           ${dataReport
+    //             .map(
+    //               (data) => `
+    //           <tr>
+
+    //             <td>${data.mpan}</td>
+    //             <td>${data.cpan}</td>
+
+    //           </tr>
+    //         `
+    //             )
+    //             .join("")}
+    //       </table>
+    //     </body>
+    //   </html>
+    // `;
+
+    const htmlContent = `
+        <html>
+          <head>
+            <style>
+            .info{
+              margin-bottom : 16px;
+            }
+              .title-content {
+                background-color: #ffffff;
+                padding: 8px;
+              }
+              table {
+                border-collapse: collapse;
+                width: 100%;
+                margin-bottom:10px;
+                padding: 18px;
+
+              }
+              th{
+                border: 1px solid black;
+                padding: 8px;
+                text-align: center;
+              }
+              td{
+                border: 1px solid black;
+                padding: 8px;
+                text-align: left;
+              }
+
+            </style>
+          </head>
+          <body>
+            <h2>Hasil Test</h2>
+         
+              ${dataReport
+                .map(
+                  (data) => `
+
+            <div class = "info">
+              <div class= "title-content">
+                <span>Test Code :</span>
+                <span>${data.testCaseCode}</span>
+              </div>
+
+              <div class= "title-content">
+                <span>Message Type :</span>
+                <span>${data.messageType}</span>
+              </div>
+
+            </div>
+
+         
+                  <span>Request Message</span>
+                  <table>
+
+                    <tr>
+                      <th>Bit</th>
+                      <th>Value</th>
+                    </tr>
+
+                  
+                    <tr>
+                      <td>trxPan</td>
+                      <td>${data.mpan}</td>
+                    </tr>
+
+                    <tr>
+                      <td>trxCode</td>
+                      <td>${data.processCode}</td>
+                    </tr>
+
+                    <tr>
+                      <td>trxAmount</td>
+                      <td>${data.transactionAmount}</td>
+                    </tr>
+
+                    <tr>
+                      <td>trxFeeAmount</td>
+                      <td>${data.tipAmount}</td>
+                    </tr>
+                    <tr>
+                      <td>fromAccount</td>
+                      <td>${data.cpan}</td>
+                    </tr>
+                    <tr>
+                      <td>msgType</td>
+                      <td>${data.messageCode}</td>
+                    </tr>
+                    <tr>
+                      <td>trxFeeAmount</td>
+                      <td>${data.tipAmount}</td>
+                    </tr>
+                    <tr>
+                      <td>Transmission Date and Time</td>
+                      <td>${data.transmissionDateTime}</td>
+                    </tr>
+                    <tr>
+                      <td>Conversion Rate Sattlement</td>
+                      <td>${data.settlementConversionRate}</td>
+                    </tr>
+                    <tr>
+                      <td>Conversion Rate Cardholder Billing</td>
+                      <td>${data.accHolderConversionRate}</td>
+                    </tr>
+                    <tr>
+                      <td>System Trace Audit Number</td>
+                      <td>${data.tipAmount}</td>
+                    </tr>
+                    <tr>
+                      <td>Time Local Transaction</td>
+                      <td>${data.tipAmount}</td>
+                    </tr>
+                    <tr>
+                      <td>Date Local Transaction</td>
+                      <td>${data.tipAmount}</td>
+                    </tr>
+                    <tr>
+                      <td>Date Settlement</td>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Date Conversion</th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Date Capture</th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Merchant's Type</th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Point of Service Entry Mode</th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Amount Transaction Fee</th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Acquiring Institution Identification Code</th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Forwarding Institution Identification Code</th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Retrieval Reference Number/th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Authorization Identification Response</th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Card Acceptor Terminal Identification</th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Additional Data</th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Currency Code, Transaction</th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Currency Code, Settlement</th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Currency Code, Cardholder Billing</th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Additional Data –National</th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Issuer ID</th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                    <tr>
+                      <th>Account Identification 1</th>
+                      <th>${data.tipAmount}</th>
+                    </tr>
+                  </table>
+
+
+            `
+                )
+                .join("")}
+        
+        </body>
+      </html>
+    `;
 
     pdf.create(htmlContent, pdfOptions).toBuffer((err, buffer) => {
       if (err) {
